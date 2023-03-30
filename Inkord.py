@@ -15,7 +15,6 @@ def retrieveOrderQuantity(rawData: pd.DataFrame) -> pd.DataFrame:
     """
     data = prepareExactData(rawData, orders.ankerWord, orders.columnNamesArticles)
 
-    orders.columnNamesCustomers.pop([])
     # Fill nan values with the cell value above it for the columns "productId" and "productName"
     data[["productId", "productName"]] = data[["productId", "productName"]].fillna(
         method="ffill"

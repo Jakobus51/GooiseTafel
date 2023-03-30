@@ -4,7 +4,7 @@ from constants import orders, customers
 
 
 def retrieveOrderQuantity(
-    rawOrderData: pd.DataFrame, rawCustomerData: pd.DateFrame
+    rawOrderData: pd.DataFrame, rawCustomerData: pd.DataFrame
 ) -> pd.DataFrame:
     """checks which customers are in the orderData but not in the customer data
 
