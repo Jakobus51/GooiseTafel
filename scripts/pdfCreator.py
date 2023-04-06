@@ -8,6 +8,8 @@ from reportlab.platypus import (
     Frame,
     PageTemplate,
     PageBreak,
+    BaseDocTemplate,
+    NextPageTemplate,
 )
 from reportlab.lib.units import mm
 from reportlab.lib.styles import getSampleStyleSheet
@@ -16,6 +18,7 @@ from pandas import DataFrame
 from functools import partial
 from pathlib import Path
 from os import path
+from reportlab.pdfgen import canvas
 
 
 def createPDF(
@@ -41,28 +44,33 @@ def createPDF(
 
     # have to use old path method since reportLab does not support pathlib
     outputFile = path.join(outputFolder, f"{titleText}.pdf")
-    doc = SimpleDocTemplate(
+    doc = BaseDocTemplate(
         outputFile,
         pagesize=(pageWidth, pageHeight),
-        bottomMargin=6 * mm,
-        topMargin=6 * mm,
+        bottomMargin=5 * mm,
+        topMargin=5 * mm,
+        leftMargin=10 * mm,
+        rightMargin=10 * mm,
     )
-    frameFirstPage = Frame(
-        12 * mm, 6 * mm, pageWidth - 25 * mm, pageHeight - 12 * mm, id="main_frame"
-    )
+    frame = Frame(doc.leftMargin, doc.bottomMargin, doc.width, doc.height, id="normal")
 
     # make template with a logo in the right upper corner
     firstPageTemplate = PageTemplate(
         id="with_logo",
-        frames=[frameFirstPage],
+        frames=[frame],
         onPage=partial(drawFirstPage, landscapeBool=isPDFforKAL),
     )
-    doc.addPageTemplates([firstPageTemplate])
+    otherPageTemplate = PageTemplate(
+        id="without_logo",
+        frames=[frame],
+        onPage=partial(drawOtherPages, landscapeBool=isPDFforKAL),
+    )
+    doc.addPageTemplates([firstPageTemplate, otherPageTemplate])
 
     story = createStory(titleText, metaDataText, isPDFforKAL, data, columnSpacing, doc)
-
+    # doc.canv.setPageSize = landscape(A4) if isPDFforKAL else A4
     # Builds the pdf and automatically saves it to the current directory
-    doc.build(story, onLaterPages=partial(drawOtherPages, landscapeBool=isPDFforKAL))
+    doc.build(story)
 
 
 def drawLogo(canvas, document, landscapeBool):
@@ -97,6 +105,8 @@ def drawFirstPage(canvas, document, landscapeBool):
     """
     Is called for the first page where you want the logo and the page number
     """
+    canvas.setPageSize(landscape(A4) if landscapeBool else A4)
+
     drawLogo(canvas, document, landscapeBool)
     addPageNumber(canvas, document, landscapeBool)
 
@@ -105,19 +115,8 @@ def drawOtherPages(canvas, document, landscapeBool):
     """
     Is called for the other pages, where you only want the page number
     """
+    canvas.setPageSize(landscape(A4) if landscapeBool else A4)
     addPageNumber(canvas, document, landscapeBool)
-
-
-def wrap_cell_content(data_frame):
-    """
-    Code from GPT4 which makes the cells use textwrap if the text is too long
-    """
-    styles = getSampleStyleSheet()
-    wrapped_data = []
-    for row in data_frame.values:
-        wrapped_row = [Paragraph(str(cell), styles["Normal"]) for cell in row]
-        wrapped_data.append(wrapped_row)
-    return wrapped_data
 
 
 def createStory(
@@ -168,6 +167,7 @@ def createStory(
         return [
             header,
             metaInformation,
+            NextPageTemplate("without_logo"),
             headerGT,
             tableGT,
             PageBreak(),
@@ -183,6 +183,7 @@ def createStory(
         return [
             header,
             metaInformation,
+            NextPageTemplate("without_logo"),
             table,
         ]
 
@@ -237,3 +238,15 @@ def createTable(
         ]
     )
     return table
+
+
+def wrap_cell_content(data_frame):
+    """
+    Code from GPT4 which makes the cells use textwrap if the text is too long
+    """
+    styles = getSampleStyleSheet()
+    wrapped_data = []
+    for row in data_frame.values:
+        wrapped_row = [Paragraph(str(cell), styles["Normal"]) for cell in row]
+        wrapped_data.append(wrapped_row)
+    return wrapped_data
