@@ -1,9 +1,9 @@
-from scripts.KAL import runKal
+from scripts.liex import runLiex
 from pathlib import Path
 
 if __name__ == "__main__":
-    filePathOrders = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\kal-orders.xlsx"
+    filePathWebShop = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\webshop-orders.csv"
     )
     filePathCustomers = Path(
         r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\klanten-bestand.xlsx"
@@ -12,5 +12,5 @@ if __name__ == "__main__":
         r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\export"
     )
 
-    runKal(filePathOrders, filePathCustomers, exportFolder)
-    print("Finished KAL run")
+    runLiex(filePathWebShop, filePathCustomers, exportFolder)
+    print("Finished liex run")

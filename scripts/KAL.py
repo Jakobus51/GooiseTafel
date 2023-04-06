@@ -1,7 +1,39 @@
 from pandas import DataFrame, read_excel
-from scripts.gsHelpers import getDateVerkoop, prepareExactData
+from scripts.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
 from scripts.constants import orders, customers, KalPDF
-from numpy import arange
+from pathlib import Path
+from scripts.pdfCreator import createPDF
+
+
+def runKal(filePathOrders: Path, filePathCustomers: Path, exportFolder: Path) -> None:
+    """Finds all customers who have yet to order and exports a pdf of the results
+
+    Args:
+        filePathOrders (Path): Location where the orders are to be found
+        filePathCustomers (Path): Location where the customers are to be found
+        exportFolder (Path): Place where you want to save the pdf
+    """
+    rawOrderData = read_excel(filePathOrders, header=None)
+    rawCustomerData = read_excel(filePathCustomers, header=None)
+
+    # Get data used in metadata and title of pdf
+    deliveryDateRange = getDeliveryDateRange(rawOrderData)
+    exportDate = getDateOfExactFile(rawOrderData)
+
+    # Retrieve data you want to display and make it pdf ready
+    customersYetToOrder = retrieveCustomersYetToOrder(rawOrderData, rawCustomerData)
+    dividedCustomers = divideCustomers(customersYetToOrder)
+    pdfInput = formatForPdf(dividedCustomers)
+
+    # Create the pdf
+    createPDF(
+        KalPDF.Title(deliveryDateRange),
+        KalPDF.MetaData(deliveryDateRange, exportDate),
+        pdfInput,
+        KalPDF.columnSpacing,
+        True,
+        exportFolder,
+    )
 
 
 def retrieveCustomersYetToOrder(
@@ -16,7 +48,8 @@ def retrieveCustomersYetToOrder(
     Returns:
         DataFrame: Dataframe of all customers who have yet to order
     """
-    # prepare order and customer data
+
+    # Format the exact data properly
     orderData = prepareExactData(
         rawOrderData, orders.ankerWord, orders.columnNamesCustomers
     )
@@ -39,32 +72,48 @@ def retrieveCustomersYetToOrder(
     return filteredCustomers
 
 
-def displayDataFrame(
-    data: DataFrame,
-) -> DataFrame:
-    """Only retrieves the columns you want to display and give them proper names
-    Also adds numbers in front
+def divideCustomers(data: DataFrame) -> dict:
+    """Divides the customers into three groups:
+    Group 1 (GT): customers who are ordered for
+    Group 2 (@): customers who order online
+    Group 3 (not @ or GT): the rest
 
     Args:
-        data (DataFrame): The original dataframe containing all columns
+        data (DataFrame): Dataframe where all customers are combined
 
     Returns:
-        DataFrame: Dataframe with only columns you want to be shown
+        dict: Dictionary with three entries, one for each group
     """
-    data = data[KalPDF.dataDisplayColumns]
-    data.set_axis(KalPDF.pdfDisplayColumns, axis=1, inplace=True)
-    data.insert(loc=0, column="#", value=arange(len(data)))
-    return data
+    data["customerRemarks1"].fillna("", inplace=True)
+
+    customers = {
+        "GT": data[data["customerRemarks1"].str.startswith("GT")],
+        "online": data[data["customerRemarks1"].str.startswith("@")],
+        "normal": data[~data["customerRemarks1"].str.startswith(("GT", "@"))],
+    }
+    return customers
 
 
-# if __name__ == "__main__":
-#     filePathOrders = r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\code\script-blueprints\Input\kal-orders.xlsx"
-#     filePathCustomers = r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\code\script-blueprints\Input\klanten-bestand.xlsx"
+def formatForPdf(dictCustomers: dict) -> dict:
+    """Only retrieves the columns you want to display and give them proper names
 
-#     rawOrderData = read_excel(filePathOrders, header=None)
-#     rawCustomerData = read_excel(filePathCustomers, header=None)
+    Args:
+        dictCustomers (dict): Dictionary with three entries, one for each group with extra columns which need to be removed
 
-#     date = getDateVerkoop(rawOrderData)
+    Returns:
+        dict: Dictionary with the three groups ready to be displayed
+    """
+    for key in dictCustomers:
+        data = dictCustomers[key]
+        data = data[KalPDF.dataDisplayColumns]
+        # split string on - and keep latter half, this chops off the abbreviated part of deliveryMethod
+        data["deliveryMethod"] = data["deliveryMethod"].str.split("-")
+        data["deliveryMethod"] = data["deliveryMethod"].str[1]
 
-#     result = retrieveCustomersYetToOrder(rawOrderData, rawCustomerData)
-#     print(result)
+        # set all NaN value to an empty string
+        data.fillna("", inplace=True)
+
+        # Set columns to dutch readable names
+        data.set_axis(KalPDF.pdfDisplayColumns, axis=1, inplace=True)
+        dictCustomers[key] = data
+    return dictCustomers

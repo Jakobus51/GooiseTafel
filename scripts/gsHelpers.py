@@ -1,9 +1,5 @@
 from pandas import DataFrame
-import re
-
-
-def my_method():
-    print("Hello, world!")
+from re import search
 
 
 def getDateOfExactFile(data: DataFrame) -> str:
@@ -20,7 +16,7 @@ def getDateOfExactFile(data: DataFrame) -> str:
     pattern = r"\d+\s+\w+\s+\d+"
 
     # Use the regular expression to search for the date in the string
-    match = re.search(pattern, data.iloc[1, 0])
+    match = search(pattern, data.iloc[1, 0])
 
     if match:
         # Extract the matched date from the regular expression match
@@ -30,7 +26,7 @@ def getDateOfExactFile(data: DataFrame) -> str:
         return " "
 
 
-def getDateVerkoop(data: DataFrame) -> str:
+def getDeliveryDateRange(data: DataFrame) -> str:
     """
     Retrieve the date from a goederenlevering Exact export
     Find the word Afleverdatum which is in column C. Take value to the right of it
@@ -91,7 +87,9 @@ def prepareLightSpeedData(rawData: DataFrame) -> DataFrame:
     """
 
     data = rawData.iloc[:, 0].str.split(";", expand=True)
+    # use original column names
     data.columns = data.iloc[0]
     data = data[1:]
+    # remove " from all entries
     data = data.applymap(lambda x: x.replace('"', ""))
     return data

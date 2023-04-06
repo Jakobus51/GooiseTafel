@@ -1,4 +1,4 @@
-from reportlab.lib.pagesizes import A4
+from reportlab.lib.pagesizes import A4, landscape
 from reportlab.lib import colors
 from reportlab.platypus import (
     SimpleDocTemplate,
@@ -7,52 +7,105 @@ from reportlab.platypus import (
     LongTable,
     Frame,
     PageTemplate,
+    PageBreak,
 )
-from reportlab.lib.units import inch, mm
+from reportlab.lib.units import mm
 from reportlab.lib.styles import getSampleStyleSheet
-from scripts.constants import media, KalPDF
+from scripts.constants import media
 from pandas import DataFrame
+from functools import partial
+from pathlib import Path
+from os import path
 
 
-def drawLogo(canvas, document):
+def createPDF(
+    titleText: str,
+    metaDataText: str,
+    data: dict,
+    columnSpacing: list[float],
+    isPDFforKAL: bool,
+    outputFolder: Path,
+) -> None:
+    """Creates a pdf based on the given input. Is either for the KAL ot Inkord application
+
+    Args:
+        titleText (str): Title used in the pdf and set as pdf file name
+        metaDataText (str): Extra information about the data used in the pdf
+        data (DataFrame): The data you want to display in the pdf, is already formatted in the correct form
+        columnSpacing (list[float]): The % of width of each column
+        landScape (bool): whether the page is in landscape mode or not
+    """
+    # Create a PDF file with a frame
+
+    pageWidth, pageHeight = landscape(A4) if isPDFforKAL else A4
+
+    # have to use old path method since reportLab does not support pathlib
+    outputFile = path.join(outputFolder, f"{titleText}.pdf")
+    doc = SimpleDocTemplate(
+        outputFile,
+        pagesize=(pageWidth, pageHeight),
+        bottomMargin=6 * mm,
+        topMargin=6 * mm,
+    )
+    frameFirstPage = Frame(
+        12 * mm, 6 * mm, pageWidth - 25 * mm, pageHeight - 12 * mm, id="main_frame"
+    )
+
+    # make template with a logo in the right upper corner
+    firstPageTemplate = PageTemplate(
+        id="with_logo",
+        frames=[frameFirstPage],
+        onPage=partial(drawFirstPage, landscapeBool=isPDFforKAL),
+    )
+    doc.addPageTemplates([firstPageTemplate])
+
+    story = createStory(titleText, metaDataText, isPDFforKAL, data, columnSpacing, doc)
+
+    # Builds the pdf and automatically saves it to the current directory
+    doc.build(story, onLaterPages=partial(drawOtherPages, landscapeBool=isPDFforKAL))
+
+
+def drawLogo(canvas, document, landscapeBool):
     """
     Add the logo
     """
     # get the logo
-    logo = Image(media.logoPath, width=1.8 * inch, height=1.2 * inch)
-    pageWidth, pageHeight = A4
+    logo = Image(media.logoPath, width=45 * mm, height=30 * mm)
+    pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
 
     # Calculate the upper right corner position
-    logoX = pageWidth - logo._width - 0.5 * inch
-    logoY = pageHeight - logo._height - 0.5 * inch
+    logoX = pageWidth - logo._width - 10 * mm
+    logoY = pageHeight - logo._height - 5 * mm
 
     # Draw the logo on the canvas
     canvas.drawImage(media.logoPath, logoX, logoY, logo._width, logo._height)
 
 
-def addPageNumber(canvas, doc):
+def addPageNumber(canvas, doc, landscapeBool):
     """
     Add the page number
     """
+    pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
+
     page_num = canvas.getPageNumber()
     text = "Pagina %s" % page_num
     canvas.setFont("Helvetica", 9)
-    canvas.drawRightString(200 * mm, 5 * mm, text)
+    canvas.drawRightString(pageWidth - 10 * mm, 5 * mm, text)
 
 
-def drawFirstPage(canvas, document):
+def drawFirstPage(canvas, document, landscapeBool):
     """
     Is called for the first page where you want the logo and the page number
     """
-    drawLogo(canvas, document)
-    addPageNumber(canvas, document)
+    drawLogo(canvas, document, landscapeBool)
+    addPageNumber(canvas, document, landscapeBool)
 
 
-def drawOtherPages(canvas, document):
+def drawOtherPages(canvas, document, landscapeBool):
     """
     Is called for the other pages, where you only want the page number
     """
-    addPageNumber(canvas, document)
+    addPageNumber(canvas, document, landscapeBool)
 
 
 def wrap_cell_content(data_frame):
@@ -67,8 +120,78 @@ def wrap_cell_content(data_frame):
     return wrapped_data
 
 
+def createStory(
+    titleText: str,
+    metaDataText: str,
+    isPDFforKAL: bool,
+    data: dict,
+    columnSpacing: list[float],
+    doc: SimpleDocTemplate,
+) -> list[any]:
+    """Pieces everything together into one pdf which is called a story
+
+    Args:
+        titleText (str): Title of the pdf
+        metaDataText (str): Some meta data about the pdf
+        isPDFforKAL (bool): whether it is KAL or Inkord pdf
+        data (dict): Data that will be passed into the tables
+        columnSpacing (list[float]): The % of width of each column
+        doc (SimpleDocTemplate): object used for pdf creation
+
+    Returns:
+        list[any]: List of all the elements that will be made into a pdf
+    """
+    # Get the default styles
+    styles = getSampleStyleSheet()
+
+    # Create the objects that will be shown on the pdf. In reportLab this is called a story
+    header = Paragraph(titleText, styles["Heading1"])
+    metaInformation = Paragraph(metaDataText, styles["Normal"])
+
+    if isPDFforKAL:
+        # KAL has three different table each corresponding to a different subGroup
+        tableGT = createTable(data["GT"], columnSpacing, True, colors.lightblue)
+        tableNormal = createTable(data["normal"], columnSpacing, True, colors.white)
+        tableOnline = createTable(
+            data["online"], columnSpacing, True, colors.lightgreen
+        )
+
+        textHeaderGt = "Klanten die niet zelf bestellen (GT)"
+        headerGT = Paragraph(textHeaderGt, styles["Heading2"])
+
+        textHeaderOnline = "Klanten die online bestellen (online)"
+        headerOnline = Paragraph(textHeaderOnline, styles["Heading2"])
+
+        textHeaderNormal = "Klanten die niet GT zijn of online bestellen"
+        headerNormal = Paragraph(textHeaderNormal, styles["Heading2"])
+
+        return [
+            header,
+            metaInformation,
+            headerGT,
+            tableGT,
+            PageBreak(),
+            headerOnline,
+            tableOnline,
+            PageBreak(),
+            headerNormal,
+            tableNormal,
+        ]
+    else:
+        # Inkord only has one table to make
+        table = createTable(data["normal"], columnSpacing, False, colors.white)
+        return [
+            header,
+            metaInformation,
+            table,
+        ]
+
+
 def createTable(
-    data: DataFrame, columnSpacing: list[float], doc: SimpleDocTemplate
+    data: DataFrame,
+    columnSpacing: list[float],
+    isPDFforKAL: bool,
+    color: any,
 ) -> LongTable:
     """
     Creates the table by first applying text-wrap and then configuring the column width
@@ -80,9 +203,9 @@ def createTable(
     table = LongTable(dataForTable)
 
     # make the table page width wide
-    pageWidth, pageHeight = A4
-    leftMargin = 0.5 * inch
-    rightMargin = 0.5 * inch
+    pageWidth, pageHeight = landscape(A4) if isPDFforKAL else A4
+    leftMargin = 10 * mm
+    rightMargin = 10 * mm
     availableWidth = pageWidth - leftMargin - rightMargin
 
     # Set the column widths, the columnSpacing needs to be the same as the number of columns in the data
@@ -110,52 +233,7 @@ def createTable(
                 (-1, -1),
                 "MIDDLE",
             ),
+            ("BACKGROUND", (0, 1), (0, -1), color),
         ]
     )
-
     return table
-
-
-def createPDF(
-    titleText: str, metaDataText: str, data: DataFrame, columnSpacing: list[float]
-) -> None:
-    """Creates a pdf pased on the given input. Is either for the KAL ot Inkord application
-
-    Args:
-        titleText (str): Title used in the pdf and set as pdf file name
-        metaDataText (str): Extra information about the data used in the pdf
-        data (DataFrame): The data you want to display in the pdf, is already formatted in the correct form
-        columnSpacing (list[float]): The % of width of each column
-    """
-    # Create a PDF file with a frame
-    doc = SimpleDocTemplate(
-        f"{titleText}.pdf", pagesize=A4, bottomMargin=0.25 * inch, topMargin=0.25 * inch
-    )
-    # size of a4 paper is 8.27 by 11.69 inch, subtract one from both
-    frameFirstPage = Frame(
-        0.5 * inch, 0.25 * inch, 7.27 * inch, 11.19 * inch, id="main_frame"
-    )
-    # make template with a logo in the right upper corner
-    firstPageTemplate = PageTemplate(
-        id="with_logo", frames=[frameFirstPage], onPage=drawFirstPage
-    )
-    doc.addPageTemplates([firstPageTemplate])
-
-    # Get the default styles
-    styles = getSampleStyleSheet()
-
-    # Create the objects that will be shown on the pdf. In reportLab this is called a story
-    header = Paragraph(titleText, styles["Heading1"])
-    metaInformation = Paragraph(metaDataText, styles["Normal"])
-    table = createTable(data, columnSpacing, doc)
-    story = [
-        header,
-        metaInformation,
-        table,
-    ]
-
-    # Builds the pdf and automatically saves it to the current directory
-    doc.build(
-        story,
-        onLaterPages=drawOtherPages,
-    )

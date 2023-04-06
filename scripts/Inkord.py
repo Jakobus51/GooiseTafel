@@ -1,7 +1,36 @@
 from pandas import DataFrame, read_excel
-from scripts.gsHelpers import getDateVerkoop, prepareExactData
+from scripts.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
 from scripts.constants import orders, InkordPDF
-from numpy import arange
+from pathlib import Path
+from scripts.pdfCreator import createPDF
+
+
+def runInkord(filePathOrders: Path, exportFolder: Path) -> None:
+    """Sums the orders and exports a pdf of the results
+
+    Args:
+        filePathOrders (Path): Location where the orders are to be found
+        exportFolder (Path): Place where you want to save the pdf
+    """
+    rawOrderData = read_excel(filePathOrders, header=None)
+
+    # Get data used in metadata and title of pdf
+    deliveryDateRange = getDeliveryDateRange(rawOrderData)
+    exportDate = getDateOfExactFile(rawOrderData)
+
+    # Retrieve data you want to display and make it pdf ready
+    summedOrders = retrieveOrderQuantity(rawOrderData)
+    pdfInput = formatForPdf(summedOrders)
+
+    # Create the pdf
+    createPDF(
+        InkordPDF.Title(deliveryDateRange),
+        InkordPDF.MetaData(deliveryDateRange, exportDate),
+        pdfInput,
+        InkordPDF.columnSpacing,
+        False,
+        exportFolder,
+    )
 
 
 def retrieveOrderQuantity(rawOrderData: DataFrame) -> DataFrame:
@@ -14,6 +43,7 @@ def retrieveOrderQuantity(rawOrderData: DataFrame) -> DataFrame:
     Returns:
         DataFrame: A dataframe where products are summed
     """
+    # Format the exact data properly
     orderData = prepareExactData(
         rawOrderData, orders.ankerWord, orders.columnNamesArticles
     )
@@ -45,26 +75,21 @@ def retrieveOrderQuantity(rawOrderData: DataFrame) -> DataFrame:
     return summedData
 
 
-def displayDataFrame(
+def formatForPdf(
     data: DataFrame,
-) -> DataFrame:
-    """Only retrieves the columns you want to display and give them proper names
+) -> dict:
+    """Only retrieves the columns you want to display and give them proper names and sort on product name
 
     Args:
         data (DataFrame): The original dataframe containing all columns
 
     Returns:
-        DataFrame: Dataframe with only columns you want to be shown
+        dict: dictionary with only the data you want to display
     """
+    # only save specific columns
     data = data[InkordPDF.dataDisplayColumns]
+    # sort on alphabetical order
+    data.sort_values("productName", inplace=True)
+    # Rename to dutch friendly names that will be shown in the pdf
     data.set_axis(InkordPDF.pdfDisplayColumns, axis=1, inplace=True)
-    return data
-
-
-# if __name__ == "__main__":
-#     filePathOrders = r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\code\script-blueprints\Input\inkord-orders.xlsx"
-#     rawOrderData = read_excel(filePathOrders, header=None)
-#     date = getDateVerkoop(rawOrderData)
-
-#     result = retrieveOrderQuantity(rawOrderData)
-#     print(result)
+    return {"normal": data}

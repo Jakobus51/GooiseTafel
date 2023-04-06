@@ -1,9 +1,15 @@
-import pandas as pd
-from scripts.gsHelpers import getDateVerkoop, prepareExactData
-from scripts.constants import orders, customers
+from pandas import DataFrame, read_excel
+from scripts.gsHelpers import prepareExactData
+from scripts.constants import orders
+from pathlib import Path
 
 
-def retrieveLabelDf(rawOrderData: pd.DataFrame) -> pd.DataFrame:
+def runGotaLabel(filePathOrders: Path, exportFolder: Path) -> None:
+    rawOrderData = read_excel(filePathOrders, header=None)
+    orderLabels = retrieveLabelDf(rawOrderData)
+
+
+def retrieveLabelDf(rawOrderData: DataFrame) -> DataFrame:
     """checks which customers are in the orderData but not in the customer data
 
     Args:
@@ -11,7 +17,7 @@ def retrieveLabelDf(rawOrderData: pd.DataFrame) -> pd.DataFrame:
         rawCustomerData (pd.DateFrame): Exact output containing all customers
 
     Returns:
-        pd.DataFrame: Dataframe of all customers who have yet to order
+       DataFrame: Dataframe of all customers who have yet to order
     """
     # prepare order and customer data
     orderData = prepareExactData(
@@ -32,13 +38,3 @@ def retrieveLabelDf(rawOrderData: pd.DataFrame) -> pd.DataFrame:
     orderLabelData = orderData[orderData["quantity"].notna()]
 
     return orderLabelData
-
-
-if __name__ == "__main__":
-    filePathOrders = r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\code\script-blueprints\Input\gotalabel-orders.xlsx"
-    rawOrderData = pd.read_excel(filePathOrders, header=None)
-
-    date = getDateVerkoop(rawOrderData)
-
-    result = retrieveLabelDf(rawOrderData)
-    print(result)
