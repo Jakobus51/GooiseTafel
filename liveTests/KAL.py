@@ -1,4 +1,4 @@
-from scripts.KAL import runKal
+from backEnd.KAL import runKal
 from pathlib import Path
 
 if __name__ == "__main__":

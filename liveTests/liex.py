@@ -1,4 +1,4 @@
-from scripts.liex import runLiex
+from backEnd.liex import runLiex
 from pathlib import Path
 
 if __name__ == "__main__":

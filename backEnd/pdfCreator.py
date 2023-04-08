@@ -13,7 +13,7 @@ from reportlab.platypus import (
 )
 from reportlab.lib.units import mm
 from reportlab.lib.styles import getSampleStyleSheet
-from scripts.constants import media
+from media.media import paths
 from pandas import DataFrame
 from functools import partial
 from pathlib import Path
@@ -78,7 +78,7 @@ def drawLogo(canvas, document, landscapeBool):
     Add the logo
     """
     # get the logo
-    logo = Image(media.logoPath, width=45 * mm, height=30 * mm)
+    logo = Image(paths.logo, width=45 * mm, height=30 * mm)
     pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
 
     # Calculate the upper right corner position
@@ -86,7 +86,7 @@ def drawLogo(canvas, document, landscapeBool):
     logoY = pageHeight - logo._height - 5 * mm
 
     # Draw the logo on the canvas
-    canvas.drawImage(media.logoPath, logoX, logoY, logo._width, logo._height)
+    canvas.drawImage(paths.logo, logoX, logoY, logo._width, logo._height)
 
 
 def addPageNumber(canvas, doc, landscapeBool):

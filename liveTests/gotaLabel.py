@@ -1,4 +1,4 @@
-from scripts.gotaLabel import runGotaLabel
+from backEnd.gotaLabel import runGotaLabel
 from pathlib import Path
 
 if __name__ == "__main__":

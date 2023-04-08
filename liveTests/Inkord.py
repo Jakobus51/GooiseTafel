@@ -1,4 +1,4 @@
-from scripts.inkord import runInkord
+from backEnd.inkord import runInkord
 from pathlib import Path
 
 if __name__ == "__main__":

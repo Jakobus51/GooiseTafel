@@ -81,14 +81,6 @@ class liexCsvExport:
     ]
 
 
-class media:
-    """Path to the logo"""
-
-    logoPath = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\logo.png"
-    )
-
-
 class KalPDF:
     """Constant used for generating the pdf of the KAL application"""
 

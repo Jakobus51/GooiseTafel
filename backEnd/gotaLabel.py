@@ -1,6 +1,6 @@
 from pandas import DataFrame, read_excel
-from scripts.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
-from scripts.constants import orders
+from backEnd.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
+from backEnd.constants import orders
 from pathlib import Path
 
 

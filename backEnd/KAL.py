@@ -1,8 +1,8 @@
 from pandas import DataFrame, read_excel
-from scripts.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
-from scripts.constants import orders, customers, KalPDF
+from backEnd.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
+from backEnd.constants import orders, customers, KalPDF
 from pathlib import Path
-from scripts.pdfCreator import createPDF
+from backEnd.pdfCreator import createPDF
 
 
 def runKal(filePathOrders: Path, filePathCustomers: Path, exportFolder: Path) -> None:
