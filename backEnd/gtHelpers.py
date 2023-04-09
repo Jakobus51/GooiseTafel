@@ -1,5 +1,7 @@
 from pandas import DataFrame
 from re import search
+from backEnd.constants import saveLocations as sl
+from os import path, makedirs
 
 
 def getDateOfExactFile(data: DataFrame) -> str:
@@ -93,3 +95,20 @@ def prepareLightSpeedData(rawData: DataFrame) -> DataFrame:
     # remove " from all entries
     data = data.applymap(lambda x: x.replace('"', ""))
     return data
+
+
+def setDirectories():
+    """Creates all the directories needed for the application. Each one has an input and an output"""
+    for location in [
+        sl.default,
+        sl.KALInput,
+        sl.KALOutput,
+        sl.GotaLabelInput,
+        sl.GotaLabelOutput,
+        sl.LiexInput,
+        sl.LiexOutput,
+        sl.InkordInput,
+        sl.InkordOutput,
+    ]:
+        if not path.exists(location):
+            makedirs(location)

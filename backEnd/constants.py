@@ -134,3 +134,15 @@ class InkordPDF:
     dataDisplayColumns = ["productName", "productId", "quantity"]
     # How you want the columns to be shown in the pdf
     pdfDisplayColumns = ["Product naam", "ID", "Hoeveelheid"]
+
+
+class saveLocations:
+    default = Path.home() / "Dropbox" / "Gooise Tafel BV" / "GT Software"
+    KALInput = default / "KAL" / "Input"
+    KALOutput = default / "KAL" / "Output"
+    LiexInput = default / "Liex" / "Input"
+    LiexOutput = default / "Liex" / "Output"
+    InkordInput = default / "Inkord" / "Input"
+    InkordOutput = default / "Inkord" / "Output"
+    GotaLabelInput = default / "GotaLabel" / "Input"
+    GotaLabelOutput = default / "GotaLabel" / "Output"

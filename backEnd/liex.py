@@ -1,5 +1,5 @@
 from pandas import DataFrame, merge, to_datetime, read_csv, read_excel
-from backEnd.gsHelpers import prepareExactData, prepareLightSpeedData
+from backEnd.gtHelpers import prepareExactData, prepareLightSpeedData
 from backEnd.constants import customers, liexCsvExport
 from pathlib import Path
 

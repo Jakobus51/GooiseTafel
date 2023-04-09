@@ -18,7 +18,7 @@ from pandas import DataFrame
 from functools import partial
 from pathlib import Path
 from os import path
-from reportlab.pdfgen import canvas
+from subprocess import Popen
 
 
 def createPDF(
@@ -28,6 +28,7 @@ def createPDF(
     columnSpacing: list[float],
     isPDFforKAL: bool,
     outputFolder: Path,
+    openPDF: bool,
 ) -> None:
     """Creates a pdf based on the given input. Is either for the KAL ot Inkord application
 
@@ -68,9 +69,13 @@ def createPDF(
     doc.addPageTemplates([firstPageTemplate, otherPageTemplate])
 
     story = createStory(titleText, metaDataText, isPDFforKAL, data, columnSpacing, doc)
-    # doc.canv.setPageSize = landscape(A4) if isPDFforKAL else A4
-    # Builds the pdf and automatically saves it to the current directory
+
+    # Builds the pdf and automatically saves it to the given location (=outputFile)
     doc.build(story)
+
+    # Open pdf if that option was selected
+    if openPDF:
+        Popen([outputFile], shell=True)
 
 
 def drawLogo(canvas, document, landscapeBool):

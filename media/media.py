@@ -21,3 +21,7 @@ class paths:
     GotaLabel = Path(
         r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\GotaLabel.png"
     )
+
+    Run = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\run.png"
+    )

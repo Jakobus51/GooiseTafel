@@ -1,17 +1,20 @@
 from pandas import DataFrame, read_excel
-from backEnd.gsHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
+from backEnd.gtHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
 from backEnd.constants import orders, customers, KalPDF
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
 
 
-def runKal(filePathOrders: Path, filePathCustomers: Path, exportFolder: Path) -> None:
+def runKal(
+    filePathOrders: Path, filePathCustomers: Path, exportFolder: Path, showPDF: bool
+) -> None:
     """Finds all customers who have yet to order and exports a pdf of the results
 
     Args:
         filePathOrders (Path): Location where the orders are to be found
         filePathCustomers (Path): Location where the customers are to be found
         exportFolder (Path): Place where you want to save the pdf
+        showPDF (bool): Shows the pdf if true
     """
     rawOrderData = read_excel(filePathOrders, header=None)
     rawCustomerData = read_excel(filePathCustomers, header=None)
@@ -33,6 +36,7 @@ def runKal(filePathOrders: Path, filePathCustomers: Path, exportFolder: Path) ->
         KalPDF.columnSpacing,
         True,
         exportFolder,
+        showPDF,
     )
 
 
