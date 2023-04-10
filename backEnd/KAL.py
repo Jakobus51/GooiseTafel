@@ -1,19 +1,25 @@
 from pandas import DataFrame, read_excel
-from backEnd.gtHelpers import prepareExactData, getDeliveryDateRange, getDateOfExactFile
-from backEnd.constants import orders, customers, KalPDF
+from backEnd.gtHelpers import (
+    prepareExactData,
+    getDeliveryDateRange,
+    getDateOfExactFile,
+    getDataDisplayColumn,
+    getPdfDisplayColumns,
+)
+from backEnd.constants import orders, customers, pdfEnum
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
 
 
 def runKal(
-    filePathOrders: Path, filePathCustomers: Path, exportFolder: Path, showPDF: bool
+    filePathOrders: Path, filePathCustomers: Path, outputFolder: Path, showPDF: bool
 ) -> None:
     """Finds all customers who have yet to order and exports a pdf of the results
 
     Args:
         filePathOrders (Path): Location where the orders are to be found
         filePathCustomers (Path): Location where the customers are to be found
-        exportFolder (Path): Place where you want to save the pdf
+        outputFolder (Path): Place where you want to save the pdf
         showPDF (bool): Shows the pdf if true
     """
     rawOrderData = read_excel(filePathOrders, header=None)
@@ -21,7 +27,7 @@ def runKal(
 
     # Get data used in metadata and title of pdf
     deliveryDateRange = getDeliveryDateRange(rawOrderData)
-    exportDate = getDateOfExactFile(rawOrderData)
+    dateOfExactOutput = getDateOfExactFile(rawOrderData)
 
     # Retrieve data you want to display and make it pdf ready
     customersYetToOrder = retrieveCustomersYetToOrder(rawOrderData, rawCustomerData)
@@ -30,12 +36,11 @@ def runKal(
 
     # Create the pdf
     createPDF(
-        KalPDF.Title(deliveryDateRange),
-        KalPDF.MetaData(deliveryDateRange, exportDate),
         pdfInput,
-        KalPDF.columnSpacing,
-        True,
-        exportFolder,
+        pdfEnum.KAL,
+        deliveryDateRange,
+        dateOfExactOutput,
+        outputFolder,
         showPDF,
     )
 
@@ -109,7 +114,7 @@ def formatForPdf(dictCustomers: dict) -> dict:
     """
     for key in dictCustomers:
         data = dictCustomers[key]
-        data = data[KalPDF.dataDisplayColumns]
+        data = data[getDataDisplayColumn(pdfEnum.KAL)]
         # split string on - and keep latter half, this chops off the abbreviated part of deliveryMethod
         data["deliveryMethod"] = data["deliveryMethod"].str.split("-")
         data["deliveryMethod"] = data["deliveryMethod"].str[1]
@@ -118,6 +123,6 @@ def formatForPdf(dictCustomers: dict) -> dict:
         data.fillna("", inplace=True)
 
         # Set columns to dutch readable names
-        data.set_axis(KalPDF.pdfDisplayColumns, axis=1, inplace=True)
+        data.set_axis(getPdfDisplayColumns(pdfEnum.KAL), axis=1, inplace=True)
         dictCustomers[key] = data
     return dictCustomers

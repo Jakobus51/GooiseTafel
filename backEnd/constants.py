@@ -1,4 +1,5 @@
 from pathlib import Path
+from enum import Enum
 
 
 class orders:
@@ -81,68 +82,29 @@ class liexCsvExport:
     ]
 
 
-class KalPDF:
-    """Constant used for generating the pdf of the KAL application"""
-
-    def Title(deliveryDateRange: str) -> str:
-        """Title used in the pdf as well as the pdf name"""
-        return f"KAL ({deliveryDateRange})"
-
-    def MetaData(deliveryDateRange: str, dateOfExactOutput: str) -> str:
-        """Extra information that is shown on top of the page"""
-        return f"Klanten Actie Lijst <br/><br/>Uitdraai van alle actieve klanten die nog niet hebben besteld tussen <strong>{deliveryDateRange}</strong><br/><br/>De uitdraai uit Exact was gemaakt op <strong>{dateOfExactOutput}</strong><br/><br/>"
-
-    # Should sum to one. And the length needs to be equal to the number of columns you want to show in your pdf
-    columnSpacing = [0.09, 0.10, 0.11, 0.10, 0.20, 0.25, 0.15]
-    # Original names of the columns you want to show
-    dataDisplayColumns = [
-        "customerId",
-        "customerName",
-        "city",
-        "phoneNumber",
-        "email",
-        "deliveryMethod",
-        "customerRemarks2",
-    ]
-    # How you want the columns to be shown in the pdf
-    pdfDisplayColumns = [
-        "Klant Nr.",
-        "Naam",
-        "Plaats",
-        "Telefoon",
-        "E-mail",
-        "Leveringswijze",
-        "Opmerking",
-    ]
-
-
-class InkordPDF:
-    """Constant used for generating the pdf of the Inkord application"""
-
-    def Title(deliveryDateRange: str) -> str:
-        """Title used in the pdf as well as the pdf name"""
-        return f"InkOrd ({deliveryDateRange})"
-
-    def MetaData(deliveryDateRange: str, dateOfExactOutput: str) -> str:
-        """Extra information that is shown on top of the page"""
-
-        return f"Inkooplijst <br/><br/>Uitdraai van alle gerechten die afgeleverd moeten worden<br/> tussen <strong>{deliveryDateRange}</strong><br/><br/>De uitdraai uit Exact was gemaakt op <strong>{dateOfExactOutput}</strong><br/><br/>"
-
-    # Should sum to one. And the length needs to be equal to the number of columns you want to show in your pdf
-    columnSpacing = [0.72, 0.12, 0.16]
-    # Original names of the columns you want to show
-    dataDisplayColumns = ["productName", "productId", "quantity"]
-    # How you want the columns to be shown in the pdf
-    pdfDisplayColumns = ["Product naam", "ID", "Hoeveelheid"]
+class pdfEnum(Enum):
+    KAL = "KAL"
+    Inkord = "Inkord"
+    PakLijstRoute = "PakLijstRoute"
+    PakLijstCategory = "PakLijstCategory"
 
 
 class saveLocations:
+    """All the default directories used when accessing data in the app"""
+
     default = Path.home() / "Dropbox" / "Gooise Tafel BV" / "GT Software"
-    KALInput = default / "KAL" / "Input"
-    KALOutput = default / "KAL" / "Output"
-    LiexInput = default / "Liex" / "Input"
-    LiexOutput = default / "Liex" / "Output"
-    InkordInput = default / "Inkord" / "Input"
-    InkordOutput = default / "Inkord" / "Output"
-    GotaLabelInput = default / "GotaLabel" / "Input"
-    GotaLabelOutput = default / "GotaLabel" / "Output"
+    input = default / "Input"
+    KALInput = input / "KAL"
+    LiexInput = input / "WebShop Orders (Liex)"
+    InkordInput = input / "Inkord"
+    GotaLabelInput = input / "Dag Orders (GotaLabel, PakLijst)"
+    PakLijstInput = input / "Dag Orders (GotaLabel, PakLijst)"
+
+    CustomersInput = input / "KlantenBestand"
+
+    output = default / "Output"
+    KALOutput = output / "KAL"
+    LiexOutput = output / "Liex"
+    InkordOutput = output / "Inkord"
+    GotaLabelOutput = output / "GotaLabel"
+    PakLijstOutput = output / "PakLijst"

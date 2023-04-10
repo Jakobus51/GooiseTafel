@@ -1,13 +1,9 @@
 from backEnd.inkord import runInkord
-from pathlib import Path
+from backEnd.constants import saveLocations as sl
 
 if __name__ == "__main__":
-    filePathOrders = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\inkord-orders.xlsx"
-    )
-    exportFolder = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\export"
-    )
+    ordersFile = "inkord-orders.xlsx"
+    filePathOrders = sl.InkordInput / ordersFile
 
-    runInkord(filePathOrders, exportFolder)
+    runInkord(filePathOrders, sl.InkordOutput, True)
     print("Finished Inkord run")

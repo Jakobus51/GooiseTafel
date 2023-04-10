@@ -19,29 +19,42 @@ from functools import partial
 from pathlib import Path
 from os import path
 from subprocess import Popen
+from backEnd.constants import pdfEnum
+from backEnd.gtHelpers import (
+    getPdfColumnSpacing,
+    getPdfTitle,
+    getPdfMetaData,
+    getPdfDisplayColumns,
+    getDataDisplayColumn,
+)
 
 
 def createPDF(
-    titleText: str,
-    metaDataText: str,
     data: dict,
-    columnSpacing: list[float],
-    isPDFforKAL: bool,
+    pdfKind: pdfEnum,
+    deliveryDateRange: str,
+    dateOfExactOutput: str,
     outputFolder: Path,
-    openPDF: bool,
+    showPDF: bool,
 ) -> None:
     """Creates a pdf based on the given input. Is either for the KAL ot Inkord application
 
     Args:
-        titleText (str): Title used in the pdf and set as pdf file name
-        metaDataText (str): Extra information about the data used in the pdf
         data (DataFrame): The data you want to display in the pdf, is already formatted in the correct form
-        columnSpacing (list[float]): The % of width of each column
-        landScape (bool): whether the page is in landscape mode or not
+        pdfKind (pdf.Enum): For which application the pdf needs to be created
+        deliveryDateRange (str): Range of when data was collected
+        dateOfExactOutput (str): day when the export from Exact was made
+        outputFolder (Path): Where the pdf needs to be saved
+        showPDF (bool): Whether or not you want to show the pdf after creation
     """
     # Create a PDF file with a frame
 
-    pageWidth, pageHeight = landscape(A4) if isPDFforKAL else A4
+    titleText = getPdfTitle(pdfKind, deliveryDateRange)
+    metaDataText = getPdfMetaData(pdfKind, deliveryDateRange, dateOfExactOutput)
+    columnSpacing = getPdfColumnSpacing(pdfKind)
+    landscapeBool = pdfKind == pdfEnum.KAL
+
+    pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
 
     # have to use old path method since reportLab does not support pathlib
     outputFile = path.join(outputFolder, f"{titleText}.pdf")
@@ -59,22 +72,22 @@ def createPDF(
     firstPageTemplate = PageTemplate(
         id="with_logo",
         frames=[frame],
-        onPage=partial(drawFirstPage, landscapeBool=isPDFforKAL),
+        onPage=partial(drawFirstPage, landscapeBool=landscapeBool),
     )
     otherPageTemplate = PageTemplate(
         id="without_logo",
         frames=[frame],
-        onPage=partial(drawOtherPages, landscapeBool=isPDFforKAL),
+        onPage=partial(drawOtherPages, landscapeBool=landscapeBool),
     )
     doc.addPageTemplates([firstPageTemplate, otherPageTemplate])
 
-    story = createStory(titleText, metaDataText, isPDFforKAL, data, columnSpacing, doc)
+    story = createStory(titleText, metaDataText, pdfKind, data, columnSpacing, doc)
 
     # Builds the pdf and automatically saves it to the given location (=outputFile)
     doc.build(story)
 
     # Open pdf if that option was selected
-    if openPDF:
+    if showPDF:
         Popen([outputFile], shell=True)
 
 
@@ -101,7 +114,7 @@ def addPageNumber(canvas, doc, landscapeBool):
     pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
 
     page_num = canvas.getPageNumber()
-    text = "Pagina %s" % page_num
+    text = f"Pagina {page_num}"
     canvas.setFont("Helvetica", 9)
     canvas.drawRightString(pageWidth - 10 * mm, 5 * mm, text)
 
@@ -127,7 +140,7 @@ def drawOtherPages(canvas, document, landscapeBool):
 def createStory(
     titleText: str,
     metaDataText: str,
-    isPDFforKAL: bool,
+    pdfKind: pdfEnum,
     data: dict,
     columnSpacing: list[float],
     doc: SimpleDocTemplate,
@@ -137,7 +150,7 @@ def createStory(
     Args:
         titleText (str): Title of the pdf
         metaDataText (str): Some meta data about the pdf
-        isPDFforKAL (bool): whether it is KAL or Inkord pdf
+        pdfKind (pdfEnum): which kind of pdf is getting created
         data (dict): Data that will be passed into the tables
         columnSpacing (list[float]): The % of width of each column
         doc (SimpleDocTemplate): object used for pdf creation
@@ -152,7 +165,12 @@ def createStory(
     header = Paragraph(titleText, styles["Heading1"])
     metaInformation = Paragraph(metaDataText, styles["Normal"])
 
-    if isPDFforKAL:
+    story = [
+        header,
+        metaInformation,
+        NextPageTemplate("without_logo"),
+    ]
+    if pdfKind == pdfEnum.KAL:
         # KAL has three different table each corresponding to a different subGroup
         tableGT = createTable(data["GT"], columnSpacing, True, colors.lightblue)
         tableNormal = createTable(data["normal"], columnSpacing, True, colors.white)
@@ -166,37 +184,56 @@ def createStory(
         textHeaderOnline = "Klanten die online bestellen (online)"
         headerOnline = Paragraph(textHeaderOnline, styles["Heading2"])
 
-        textHeaderNormal = "Klanten die niet GT zijn of online bestellen"
-        headerNormal = Paragraph(textHeaderNormal, styles["Heading2"])
+        textSubHeader = "Klanten die niet GT zijn of online bestellen"
+        headerNormal = Paragraph(textSubHeader, styles["Heading2"])
 
-        return [
-            header,
-            metaInformation,
-            NextPageTemplate("without_logo"),
-            headerGT,
-            tableGT,
-            PageBreak(),
-            headerOnline,
-            tableOnline,
-            PageBreak(),
-            headerNormal,
-            tableNormal,
-        ]
-    else:
+        story.extend(
+            [
+                headerGT,
+                tableGT,
+                PageBreak(),
+                headerOnline,
+                tableOnline,
+                PageBreak(),
+                headerNormal,
+                tableNormal,
+            ]
+        )
+        return story
+    if pdfKind == pdfEnum.Inkord:
         # Inkord only has one table to make
         table = createTable(data["normal"], columnSpacing, False, colors.white)
-        return [
-            header,
-            metaInformation,
-            NextPageTemplate("without_logo"),
-            table,
-        ]
+        story.append([table])
+        return story
+
+    if pdfKind == pdfEnum.PakLijstCategory or pdfEnum.PakLijstRoute:
+        meals = 0
+        subStory = []
+        for key in data:
+            df = data[key]
+
+            # Collect some extra data to show
+            meals += df["Hoeveelheid"].sum()
+
+            # Change the Productname column to the key for better user experience
+            headerText = f"{key}\n(Totaal aantal maaltijden: {df['Hoeveelheid'].sum()})"
+            df = df.rename(columns={"Product naam": headerText})
+
+            table = createTable(df, columnSpacing, False, colors.white)
+            subStory.append(table)
+
+        # Save some additional information on top of the page
+        extraInfoText = f"Deze lijst bevat {meals} maaltijden<br/><br/>"
+        extraInfo = Paragraph(extraInfoText, styles["Normal"])
+        subStory.insert(0, extraInfo)
+        story.extend(subStory)
+        return story
 
 
 def createTable(
     data: DataFrame,
     columnSpacing: list[float],
-    isPDFforKAL: bool,
+    landscapeBool: bool,
     color: any,
 ) -> LongTable:
     """
@@ -209,7 +246,7 @@ def createTable(
     table = LongTable(dataForTable)
 
     # make the table page width wide
-    pageWidth, pageHeight = landscape(A4) if isPDFforKAL else A4
+    pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
     leftMargin = 10 * mm
     rightMargin = 10 * mm
     availableWidth = pageWidth - leftMargin - rightMargin

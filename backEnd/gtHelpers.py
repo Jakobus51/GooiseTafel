@@ -1,6 +1,7 @@
 from pandas import DataFrame
 from re import search
 from backEnd.constants import saveLocations as sl
+from backEnd.constants import pdfEnum
 from os import path, makedirs
 
 
@@ -18,20 +19,19 @@ def getDateOfExactFile(data: DataFrame) -> str:
     pattern = r"\d+\s+\w+\s+\d+"
 
     # Use the regular expression to search for the date in the string
-    match = search(pattern, data.iloc[1, 0])
-
-    if match:
-        # Extract the matched date from the regular expression match
-        date = match.group()
-        return date
-    else:
-        return " "
+    # sometimes Exact gives you an extra empty row so we check two rows, the second and third row
+    for i in range(1, 3):
+        match = search(pattern, data.iloc[i, 0])
+        if match is not None:
+            # Extract the matched date from the regular expression match
+            date = match.group()
+            return date
 
 
 def getDeliveryDateRange(data: DataFrame) -> str:
     """
     Retrieve the date from a goederenlevering Exact export
-    Find the word Afleverdatum which is in column C. Take value to the right of it
+    Find the word "Afleverdatum" which is in column C. Take value to the right of it
 
     Args:
         data (DataFrame): The exact export put into a dataFrame
@@ -109,6 +109,88 @@ def setDirectories():
         sl.LiexOutput,
         sl.InkordInput,
         sl.InkordOutput,
+        sl.CustomersInput,
+        sl.PakLijstInput,
+        sl.PakLijstOutput,
     ]:
         if not path.exists(location):
             makedirs(location)
+
+
+def getPdfColumnSpacing(type: pdfEnum):
+    """Gets the column spacing for the given pdf.
+    Should sum to one and the length should be equal to the number of column you want to show
+    """
+    if type == pdfEnum.Inkord:
+        return [0.72, 0.12, 0.16]
+    if type == pdfEnum.KAL:
+        return [0.09, 0.10, 0.11, 0.10, 0.20, 0.25, 0.15]
+    if type == pdfEnum.PakLijstCategory or type == pdfEnum.PakLijstRoute:
+        return [0.85, 0.15]
+
+
+def getDataDisplayColumn(type: pdfEnum):
+    """Get the columns from the pdf you want to show on the pdf"""
+
+    if type == pdfEnum.Inkord:
+        return ["productName", "productId", "quantity"]
+    if type == pdfEnum.KAL:
+        return [
+            "customerId",
+            "customerName",
+            "city",
+            "phoneNumber",
+            "email",
+            "deliveryMethod",
+            "customerRemarks2",
+        ]
+    if type == pdfEnum.PakLijstCategory or type == pdfEnum.PakLijstRoute:
+        return ["productName", "quantity"]
+
+
+def getPdfDisplayColumns(type: pdfEnum):
+    """Get the column names you want to display on the actual pdf"""
+
+    if type == pdfEnum.Inkord:
+        return ["Product naam", "ID", "Hoeveelheid"]
+    if type == pdfEnum.KAL:
+        return [
+            "Klant Nr.",
+            "Naam",
+            "Plaats",
+            "Telefoon",
+            "E-mail",
+            "Route",
+            "Opmerking",
+        ]
+    if type == pdfEnum.PakLijstCategory or type == pdfEnum.PakLijstRoute:
+        return ["Product naam", "Hoeveelheid"]
+
+
+def getPdfTitle(type: pdfEnum, deliveryDateRange: str):
+    """Title used in the pdf as well as the pdf name"""
+
+    if type == pdfEnum.Inkord:
+        return f"InkOrd ({deliveryDateRange})"
+    if type == pdfEnum.KAL:
+        return f"KAL ({deliveryDateRange})"
+    if type == pdfEnum.PakLijstCategory:
+        return f"PakLijst TOTAAL ({deliveryDateRange})"
+    if type == pdfEnum.PakLijstRoute:
+        return f"PakLijst PER ROUTE ({deliveryDateRange})"
+
+
+def getPdfMetaData(type: pdfEnum, deliveryDateRange: str, dateOfExactOutput: str):
+    """Extra information that is shown on top of the page"""
+
+    baseTextOrders = f"Uitdraai van alle gerechten die afgeleverd moeten worden<br/> tussen <strong>{deliveryDateRange}</strong><br/><br/>De uitdraai uit Exact was gemaakt op <strong>{dateOfExactOutput}</strong><br/><br/>"
+    baseTextCustomers = f"Uitdraai van alle actieve klanten die nog niet hebben besteld tussen <strong>{deliveryDateRange}</strong><br/><br/>De uitdraai uit Exact was gemaakt op <strong>{dateOfExactOutput}</strong><br/>"
+
+    if type == pdfEnum.Inkord:
+        return baseTextOrders
+    if type == pdfEnum.KAL:
+        return baseTextCustomers
+    if type == pdfEnum.PakLijstCategory:
+        return baseTextOrders
+    if type == pdfEnum.PakLijstRoute:
+        return baseTextOrders

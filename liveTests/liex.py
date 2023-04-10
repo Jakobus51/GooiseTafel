@@ -1,16 +1,12 @@
 from backEnd.liex import runLiex
-from pathlib import Path
+from backEnd.constants import saveLocations as sl
 
 if __name__ == "__main__":
-    filePathWebShop = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\webshop-orders.csv"
-    )
-    filePathCustomers = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\klanten-bestand.xlsx"
-    )
-    exportFolder = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\export"
-    )
+    webShopOrdersFile = "webshop-orders.csv"
+    filePathWebShopOrders = sl.LiexInput / webShopOrdersFile
 
-    runLiex(filePathWebShop, filePathCustomers, exportFolder)
+    customersFile = "klanten-bestand.xlsx"
+    filePathCustomers = sl.CustomersInput / customersFile
+
+    runLiex(webShopOrdersFile, filePathCustomers, sl.LiexOutput)
     print("Finished liex run")

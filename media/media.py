@@ -22,6 +22,14 @@ class paths:
         r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\GotaLabel.png"
     )
 
+    SingleLabel = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\SingleLabel.png"
+    )
+
+    PakLijst = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\PakLijst.png"
+    )
+
     Run = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\run.png"
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Run.png"
     )

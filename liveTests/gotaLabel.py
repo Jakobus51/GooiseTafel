@@ -1,13 +1,9 @@
 from backEnd.gotaLabel import runGotaLabel
-from pathlib import Path
+from backEnd.constants import saveLocations as sl
 
 if __name__ == "__main__":
-    filePathOrders = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\Input\gotalabel-orders.xlsx"
-    )
-    exportFolder = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\export"
-    )
+    ordersFile = "inkord-orders.xlsx"
+    filePathOrders = sl.GotaLabelInput / ordersFile
 
-    runGotaLabel(filePathOrders, exportFolder)
+    runGotaLabel(filePathOrders, sl.GotaLabelOutput)
     print("Finished gotaLabel run")
