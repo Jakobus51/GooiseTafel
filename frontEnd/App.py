@@ -19,8 +19,10 @@ from backEnd.gtHelpers import setDirectories
 class App(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
+        # Makes everything a bit sharper
         self.tk.call("tk", "scaling", 1.5)
 
+        # Set default fonts
         self.titleFont = tkfont.Font(
             family="Helvetica", size=18, weight="bold", underline=True
         )
@@ -28,22 +30,28 @@ class App(tk.Tk):
         self.normalFont = tkfont.Font(family="Helvetica", size=11)
         self.subNormalFont = tkfont.Font(family="Helvetica", size=9)
 
+        # ttk widget fonts need to be set through styles
+        s = ttk.Style()
+        s.configure("TCheckbutton", font=("Helvetica", 9))
+        s.configure("TButton", font=("Helvetica", 9))
+
+        # some general variables used throughout the frond end
         self.successMessage = (
             "Success, u kunt de output vinden in de geselecteerde output folder."
         )
         self.failureMessage = "Er is iets misgegaan. Controleer of de juiste documenten geselecteerd zijn en of de outputFile niet open staat.\r\n\r\nAls dit probleem zich blijft voordoen neem dan contact op met Jakob.\r\n\r\nError location:"
         self.runLogo = tk.PhotoImage(file=paths.Run)
-
         self.extraWhiteSpace = "      "
 
-        self.geometry("1200x900")
+        # Global settings
+        self.geometry("1200x800")
         self.title("Gooise Tafel Software")
         self.configure(padx=5, pady=5)
 
         # Container is where the menu and applications are in
         mainContainer = tk.Frame(self)
         mainContainer.pack(side="top", fill="both", expand=True)
-        # makes the frames fill the entire widt of the screen
+        # makes the frames fill the entire width of the screen
         mainContainer.grid_columnconfigure(0, weight=1)
 
         self.frames = {}
@@ -131,12 +139,12 @@ class App(tk.Tk):
         spacer.grid(row=row, column=0)
 
     def createCheckbox(self, container, text, row, column, inputVariable):
-        cbCheckBox = tk.Checkbutton(
+        cbCheckBox = ttk.Checkbutton(
             container,
             text=text,
             variable=inputVariable,
-            anchor="w",
-            font=self.subNormalFont,
+            # anchor="w",
+            # font=self.subNormalFont,
         )
         cbCheckBox.grid(row=row, column=column, sticky="nsew", padx=5, pady=3)
         # cbShowPdf.select()

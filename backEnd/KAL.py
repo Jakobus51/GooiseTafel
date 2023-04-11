@@ -3,10 +3,9 @@ from backEnd.gtHelpers import (
     prepareExactData,
     getDeliveryDateRange,
     getDateOfExactFile,
-    getDataDisplayColumn,
-    getPdfDisplayColumns,
 )
-from backEnd.constants import orders, customers, pdfEnum
+from backEnd.constants import orders, customers
+from backEnd.classes.pdfHelper import PdfHelper, PdfEnum
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
 
@@ -32,17 +31,12 @@ def runKal(
     # Retrieve data you want to display and make it pdf ready
     customersYetToOrder = retrieveCustomersYetToOrder(rawOrderData, rawCustomerData)
     dividedCustomers = divideCustomers(customersYetToOrder)
-    pdfInput = formatForPdf(dividedCustomers)
+
+    pdfInput = PdfHelper(PdfEnum.KAL, deliveryDateRange, dateOfExactOutput)
+    pdfInput.setTableData(formatForPdf(dividedCustomers, pdfInput))
 
     # Create the pdf
-    createPDF(
-        pdfInput,
-        pdfEnum.KAL,
-        deliveryDateRange,
-        dateOfExactOutput,
-        outputFolder,
-        showPDF,
-    )
+    createPDF(pdfInput, outputFolder, showPDF)
 
 
 def retrieveCustomersYetToOrder(
@@ -103,18 +97,19 @@ def divideCustomers(data: DataFrame) -> dict:
     return customers
 
 
-def formatForPdf(dictCustomers: dict) -> dict:
+def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper) -> dict:
     """Only retrieves the columns you want to display and give them proper names
 
     Args:
         dictCustomers (dict): Dictionary with three entries, one for each group with extra columns which need to be removed
+        pdfInput (PdfHelper): class containing the column names that will be displayed in the pdf
 
     Returns:
         dict: Dictionary with the three groups ready to be displayed
     """
     for key in dictCustomers:
         data = dictCustomers[key]
-        data = data[getDataDisplayColumn(pdfEnum.KAL)]
+        data = data[pdfInput.dataDisplayColumn]
         # split string on - and keep latter half, this chops off the abbreviated part of deliveryMethod
         data["deliveryMethod"] = data["deliveryMethod"].str.split("-")
         data["deliveryMethod"] = data["deliveryMethod"].str[1]
@@ -123,6 +118,6 @@ def formatForPdf(dictCustomers: dict) -> dict:
         data.fillna("", inplace=True)
 
         # Set columns to dutch readable names
-        data.set_axis(getPdfDisplayColumns(pdfEnum.KAL), axis=1, inplace=True)
+        data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
         dictCustomers[key] = data
     return dictCustomers

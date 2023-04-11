@@ -19,45 +19,28 @@ from functools import partial
 from pathlib import Path
 from os import path
 from subprocess import Popen
-from backEnd.constants import pdfEnum
-from backEnd.gtHelpers import (
-    getPdfColumnSpacing,
-    getPdfTitle,
-    getPdfMetaData,
-    getPdfDisplayColumns,
-    getDataDisplayColumn,
-)
+from backEnd.classes.pdfHelper import PdfHelper, PdfEnum
 
 
 def createPDF(
-    data: dict,
-    pdfKind: pdfEnum,
-    deliveryDateRange: str,
-    dateOfExactOutput: str,
+    pdfInput: PdfHelper,
     outputFolder: Path,
     showPDF: bool,
 ) -> None:
     """Creates a pdf based on the given input. Is either for the KAL ot Inkord application
 
     Args:
-        data (DataFrame): The data you want to display in the pdf, is already formatted in the correct form
-        pdfKind (pdf.Enum): For which application the pdf needs to be created
-        deliveryDateRange (str): Range of when data was collected
-        dateOfExactOutput (str): day when the export from Exact was made
+        pdfInput (PdfHelper): Object containing all information needed to create the pdf
         outputFolder (Path): Where the pdf needs to be saved
         showPDF (bool): Whether or not you want to show the pdf after creation
     """
     # Create a PDF file with a frame
-
-    titleText = getPdfTitle(pdfKind, deliveryDateRange)
-    metaDataText = getPdfMetaData(pdfKind, deliveryDateRange, dateOfExactOutput)
-    columnSpacing = getPdfColumnSpacing(pdfKind)
-    landscapeBool = pdfKind == pdfEnum.KAL
+    landscapeBool = pdfInput.type == PdfEnum.KAL
 
     pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
 
     # have to use old path method since reportLab does not support pathlib
-    outputFile = path.join(outputFolder, f"{titleText}.pdf")
+    outputFile = path.join(outputFolder, f"{pdfInput.title}.pdf")
     doc = BaseDocTemplate(
         outputFile,
         pagesize=(pageWidth, pageHeight),
@@ -81,7 +64,7 @@ def createPDF(
     )
     doc.addPageTemplates([firstPageTemplate, otherPageTemplate])
 
-    story = createStory(titleText, metaDataText, pdfKind, data, columnSpacing, doc)
+    story = createStory(pdfInput, doc)
 
     # Builds the pdf and automatically saves it to the given location (=outputFile)
     doc.build(story)
@@ -137,22 +120,11 @@ def drawOtherPages(canvas, document, landscapeBool):
     addPageNumber(canvas, document, landscapeBool)
 
 
-def createStory(
-    titleText: str,
-    metaDataText: str,
-    pdfKind: pdfEnum,
-    data: dict,
-    columnSpacing: list[float],
-    doc: SimpleDocTemplate,
-) -> list[any]:
+def createStory(pdfInput: PdfHelper, doc: SimpleDocTemplate) -> list[any]:
     """Pieces everything together into one pdf which is called a story
 
     Args:
-        titleText (str): Title of the pdf
-        metaDataText (str): Some meta data about the pdf
-        pdfKind (pdfEnum): which kind of pdf is getting created
-        data (dict): Data that will be passed into the tables
-        columnSpacing (list[float]): The % of width of each column
+        pdfInput (PdfHelper): Object containing all information needed to create the pdf
         doc (SimpleDocTemplate): object used for pdf creation
 
     Returns:
@@ -162,20 +134,27 @@ def createStory(
     styles = getSampleStyleSheet()
 
     # Create the objects that will be shown on the pdf. In reportLab this is called a story
-    header = Paragraph(titleText, styles["Heading1"])
-    metaInformation = Paragraph(metaDataText, styles["Normal"])
+    header = Paragraph(pdfInput.title, styles["Heading1"])
+    metaInformation = Paragraph(pdfInput.metaData, styles["Normal"])
 
     story = [
         header,
         metaInformation,
         NextPageTemplate("without_logo"),
     ]
-    if pdfKind == pdfEnum.KAL:
+    if pdfInput.type == PdfEnum.KAL:
         # KAL has three different table each corresponding to a different subGroup
-        tableGT = createTable(data["GT"], columnSpacing, True, colors.lightblue)
-        tableNormal = createTable(data["normal"], columnSpacing, True, colors.white)
+        tableGT = createTable(
+            pdfInput.tableData["GT"], pdfInput.columnSpacing, True, colors.lightblue
+        )
+        tableNormal = createTable(
+            pdfInput.tableData["normal"], pdfInput.columnSpacing, True, colors.white
+        )
         tableOnline = createTable(
-            data["online"], columnSpacing, True, colors.lightgreen
+            pdfInput.tableData["online"],
+            pdfInput.columnSpacing,
+            True,
+            colors.lightgreen,
         )
 
         textHeaderGt = "Klanten die niet zelf bestellen (GT)"
@@ -200,17 +179,19 @@ def createStory(
             ]
         )
         return story
-    if pdfKind == pdfEnum.Inkord:
+    if pdfInput.type == PdfEnum.Inkord:
         # Inkord only has one table to make
-        table = createTable(data["normal"], columnSpacing, False, colors.white)
-        story.append([table])
+        table = createTable(
+            pdfInput.tableData["normal"], pdfInput.columnSpacing, False, colors.white
+        )
+        story.extend([table])
         return story
 
-    if pdfKind == pdfEnum.PakLijstCategory or pdfEnum.PakLijstRoute:
+    if pdfInput.type == PdfEnum.PakLijstCategory or PdfEnum.PakLijstRoute:
         meals = 0
         subStory = []
-        for key in data:
-            df = data[key]
+        for key in pdfInput.tableData:
+            df = pdfInput.tableData[key]
 
             # Collect some extra data to show
             meals += df["Hoeveelheid"].sum()
@@ -219,7 +200,7 @@ def createStory(
             headerText = f"{key}\n(Totaal aantal maaltijden: {df['Hoeveelheid'].sum()})"
             df = df.rename(columns={"Product naam": headerText})
 
-            table = createTable(df, columnSpacing, False, colors.white)
+            table = createTable(df, pdfInput.columnSpacing, False, colors.white)
             subStory.append(table)
 
         # Save some additional information on top of the page
@@ -282,13 +263,13 @@ def createTable(
     return table
 
 
-def wrap_cell_content(data_frame):
+def wrap_cell_content(data):
     """
     Code from GPT4 which makes the cells use textwrap if the text is too long
     """
     styles = getSampleStyleSheet()
-    wrapped_data = []
-    for row in data_frame.values:
+    wrappedData = []
+    for row in data.values:
         wrapped_row = [Paragraph(str(cell), styles["Normal"]) for cell in row]
-        wrapped_data.append(wrapped_row)
-    return wrapped_data
+        wrappedData.append(wrapped_row)
+    return wrappedData
