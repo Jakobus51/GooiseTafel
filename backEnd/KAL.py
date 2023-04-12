@@ -5,9 +5,10 @@ from backEnd.gtHelpers import (
     getDateOfExactFile,
 )
 from backEnd.constants import orders, customers
-from backEnd.classes.pdfHelper import PdfHelper, PdfEnum
+from backEnd.classes.pdfHelper import PdfHelper
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
+from backEnd.classes.appEnum import AppEnum
 
 
 def runKal(
@@ -32,8 +33,8 @@ def runKal(
     customersYetToOrder = retrieveCustomersYetToOrder(rawOrderData, rawCustomerData)
     dividedCustomers = divideCustomers(customersYetToOrder)
 
-    pdfInput = PdfHelper(PdfEnum.KAL, deliveryDateRange, dateOfExactOutput)
-    pdfInput.setTableData(formatForPdf(dividedCustomers, pdfInput))
+    pdfInput = PdfHelper(AppEnum.KAL, deliveryDateRange, dateOfExactOutput)
+    formatForPdf(dividedCustomers, pdfInput)
 
     # Create the pdf
     createPDF(pdfInput, outputFolder, showPDF)
@@ -98,14 +99,13 @@ def divideCustomers(data: DataFrame) -> dict:
 
 
 def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper) -> dict:
-    """Only retrieves the columns you want to display and give them proper names
+    """Only retrieves the columns you want to display and give them proper names, only first part of delivery column gets saved.
+    Everything gets saved into a dictionary with a different entry for each shown table in the pdf.
 
     Args:
         dictCustomers (dict): Dictionary with three entries, one for each group with extra columns which need to be removed
         pdfInput (PdfHelper): class containing the column names that will be displayed in the pdf
 
-    Returns:
-        dict: Dictionary with the three groups ready to be displayed
     """
     for key in dictCustomers:
         data = dictCustomers[key]
@@ -120,4 +120,4 @@ def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper) -> dict:
         # Set columns to dutch readable names
         data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
         dictCustomers[key] = data
-    return dictCustomers
+    pdfInput.setTableData(dictCustomers)

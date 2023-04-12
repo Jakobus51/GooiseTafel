@@ -1,7 +1,6 @@
 from pandas import DataFrame
 from re import search
 from backEnd.constants import saveLocations as sl
-from backEnd.constants import pdfEnum
 from os import path, makedirs
 
 
@@ -115,3 +114,21 @@ def setDirectories():
     ]:
         if not path.exists(location):
             makedirs(location)
+
+
+def explodeRows(data: DataFrame) -> DataFrame:
+    """Extend the dataframe per quantity.
+    Example: if quantity of a row equals to 4, three extra rows will be added to the dataframe
+    Args:
+        df (DataFrame): Dataframe you want to extend
+    Returns:
+        DataFrame: Datframe with rows equal to the sum of the quantities
+    """
+    # make a new column containing a list of 1's with size equal to quantity value
+    data["duplicates"] = data["quantity"].apply(lambda x: [1] * x)
+    # Use the 'explode' method to create new rows for each entry in the 'duplicates' list
+    data = data.explode("duplicates")
+    # Replace the 'quantity' column with the 'duplicates' column and drop the 'duplicates' column
+    data["quantity"] = data["duplicates"]
+    data = data.drop(columns=["duplicates"])
+    return data

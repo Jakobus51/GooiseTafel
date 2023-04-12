@@ -5,7 +5,8 @@ from backEnd.gtHelpers import (
     getDateOfExactFile,
 )
 from backEnd.constants import orders
-from backEnd.classes.pdfHelper import PdfHelper, PdfEnum
+from backEnd.classes.pdfHelper import PdfHelper
+from backEnd.classes.appEnum import AppEnum
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
 
@@ -27,8 +28,8 @@ def runInkord(filePathOrders: Path, outputFolder: Path, showPDF: bool) -> None:
     # Retrieve data you want to display and make it pdf ready
     summedOrders = retrieveOrderQuantity(rawOrderData)
 
-    pdfInput = PdfHelper(PdfEnum.Inkord, deliveryDateRange, dateOfExactOutput)
-    pdfInput.setTableData(formatForPdf(summedOrders, pdfInput))
+    pdfInput = PdfHelper(AppEnum.Inkord, deliveryDateRange, dateOfExactOutput)
+    formatForPdf(summedOrders, pdfInput)
 
     # Create the pdf
     createPDF(pdfInput, outputFolder, showPDF)
@@ -76,15 +77,14 @@ def retrieveOrderQuantity(rawOrderData: DataFrame) -> DataFrame:
     return summedData
 
 
-def formatForPdf(data: DataFrame, pdfInput: PdfHelper) -> dict:
+def formatForPdf(data: DataFrame, pdfInput: PdfHelper):
     """Only retrieves the columns you want to display and give them proper names and sort on product name
+    Everything gets saved into a dictionary with a different entry for each shown table in the pdf.
 
     Args:
         data (DataFrame): The original dataframe containing all columns
         pdfInput (PdfHelper): class containing the column names that will be displayed in the pdf
 
-    Returns:
-        dict: dictionary with only the data you want to display
     """
     # only save specific columns
     data = data[pdfInput.dataDisplayColumn]
@@ -92,4 +92,4 @@ def formatForPdf(data: DataFrame, pdfInput: PdfHelper) -> dict:
     data.sort_values("productName", inplace=True)
     # Rename to dutch friendly names that will be shown in the pdf
     data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
-    return {"normal": data}
+    pdfInput.setTableData({"normal": data})

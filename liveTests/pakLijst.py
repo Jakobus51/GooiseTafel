@@ -5,5 +5,5 @@ if __name__ == "__main__":
     ordersFile = "gotalabel-orders.xlsx"
     filePathOrders = sl.PakLijstInput / ordersFile
 
-    runPakLijst(filePathOrders, sl.PakLijstOutput, False, True)
+    runPakLijst(filePathOrders, sl.PakLijstOutput, isPerRoute=True, showPdf=True)
     print("Finished pakLijst run")

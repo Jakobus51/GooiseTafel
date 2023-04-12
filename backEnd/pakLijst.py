@@ -7,7 +7,8 @@ from backEnd.gtHelpers import (
 from backEnd.constants import orders
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
-from backEnd.classes.pdfHelper import PdfHelper, PdfEnum
+from backEnd.classes.pdfHelper import PdfHelper
+from backEnd.classes.appEnum import AppEnum
 
 
 def runPakLijst(
@@ -22,12 +23,12 @@ def runPakLijst(
     # Retrieve data you want to display and make it pdf ready
     sortedOrders = sortOrders(rawOrderData, isPerRoute)
     pdfInput = PdfHelper(
-        PdfEnum.PakLijstRoute if isPerRoute else PdfEnum.PakLijstCategory,
+        AppEnum.PakLijstRoute if isPerRoute else AppEnum.PakLijstCategory,
         deliveryDateRange,
         dateOfExactOutput,
     )
 
-    pdfInput.setTableData(formatForPdf(sortedOrders, pdfInput))
+    formatForPdf(sortedOrders, pdfInput)
 
     # Create the pdf
     createPDF(pdfInput, outputFolder, showPdf)
@@ -110,26 +111,33 @@ def createDictFromColumn(orderData: DataFrame, columnName: str) -> dict:
     return dict
 
 
-def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper) -> dict:
-    """Only retrieves the columns you want to display and give them proper names
+def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper):
+    """Only retrieves the columns you want to display and give them proper names then sum on the productNames
+    Number of unique deliveries also get saved based on customerId
+    Everything gets saved into a dictionary with a different entry for each shown table in the pdf.
 
     Args:
         dictCustomers (dict): Dictionary with entries for each delivery method
         pdfInput (PdfHelper): class containing the column names that will be displayed in the pdf
-
-    Returns:
-        dict: Dictionary which values only contain info you want to display in the pdf
     """
+
+    deliveries = {}
     for key in dictCustomers:
         data = dictCustomers[key]
+
+        # Save the number of unique deliveries
+        deliveries[key] = data["customerId"].nunique()
+
         # Display columns for PakLijstCategory and PakLijstRoute are the same
         data = data[pdfInput.dataDisplayColumn]
 
-        # Sum the quantities of entries with the same productId and make a dataFrame of it
+        # Sum the quantities of entries with the same productName and make a dataFrame of it
         summed = data.groupby("productName")["quantity"].sum()
         summedData = summed.to_frame().reset_index()
 
         # Rename to dutch friendly names that will be shown in the pdf
         summedData.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
         dictCustomers[key] = summedData
-    return dictCustomers
+
+    pdfInput.setDeliveries(deliveries)
+    pdfInput.setTableData(dictCustomers)

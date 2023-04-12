@@ -33,3 +33,11 @@ class paths:
     Run = Path(
         r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Run.png"
     )
+
+    Import = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Import.png"
+    )
+
+    Print = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Print.png"
+    )

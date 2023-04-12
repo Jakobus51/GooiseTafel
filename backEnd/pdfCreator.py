@@ -19,7 +19,8 @@ from functools import partial
 from pathlib import Path
 from os import path
 from subprocess import Popen
-from backEnd.classes.pdfHelper import PdfHelper, PdfEnum
+from backEnd.classes.pdfHelper import PdfHelper
+from backEnd.classes.appEnum import AppEnum
 
 
 def createPDF(
@@ -35,7 +36,7 @@ def createPDF(
         showPDF (bool): Whether or not you want to show the pdf after creation
     """
     # Create a PDF file with a frame
-    landscapeBool = pdfInput.type == PdfEnum.KAL
+    landscapeBool = pdfInput.type == AppEnum.KAL
 
     pageWidth, pageHeight = landscape(A4) if landscapeBool else A4
 
@@ -142,7 +143,7 @@ def createStory(pdfInput: PdfHelper, doc: SimpleDocTemplate) -> list[any]:
         metaInformation,
         NextPageTemplate("without_logo"),
     ]
-    if pdfInput.type == PdfEnum.KAL:
+    if pdfInput.type == AppEnum.KAL:
         # KAL has three different table each corresponding to a different subGroup
         tableGT = createTable(
             pdfInput.tableData["GT"], pdfInput.columnSpacing, True, colors.lightblue
@@ -179,7 +180,7 @@ def createStory(pdfInput: PdfHelper, doc: SimpleDocTemplate) -> list[any]:
             ]
         )
         return story
-    if pdfInput.type == PdfEnum.Inkord:
+    if pdfInput.type == AppEnum.Inkord:
         # Inkord only has one table to make
         table = createTable(
             pdfInput.tableData["normal"], pdfInput.columnSpacing, False, colors.white
@@ -187,24 +188,28 @@ def createStory(pdfInput: PdfHelper, doc: SimpleDocTemplate) -> list[any]:
         story.extend([table])
         return story
 
-    if pdfInput.type == PdfEnum.PakLijstCategory or PdfEnum.PakLijstRoute:
+    if pdfInput.type == AppEnum.PakLijstCategory or AppEnum.PakLijstRoute:
         meals = 0
+        deliveries = 0
         subStory = []
         for key in pdfInput.tableData:
             df = pdfInput.tableData[key]
 
             # Collect some extra data to show
             meals += df["Hoeveelheid"].sum()
+            deliveries += pdfInput.deliveries[key]
 
             # Change the Productname column to the key for better user experience
-            headerText = f"{key}\n(Totaal aantal maaltijden: {df['Hoeveelheid'].sum()})"
+            headerText = f"{key}\n(Aantal maaltijden: {df['Hoeveelheid'].sum()}, Aantal leveringen: {pdfInput.deliveries[key]})"
             df = df.rename(columns={"Product naam": headerText})
 
             table = createTable(df, pdfInput.columnSpacing, False, colors.white)
             subStory.append(table)
 
         # Save some additional information on top of the page
-        extraInfoText = f"Deze lijst bevat {meals} maaltijden<br/><br/>"
+        extraInfoText = (
+            f"Deze lijst bevat {meals} maaltijden en {deliveries} leveringen<br/><br/>"
+        )
         extraInfo = Paragraph(extraInfoText, styles["Normal"])
         subStory.insert(0, extraInfo)
         story.extend(subStory)

@@ -1,5 +1,4 @@
 from pathlib import Path
-from enum import Enum
 
 
 class orders:
@@ -80,13 +79,6 @@ class liexCsvExport:
         "quantity",
         "productPrice",
     ]
-
-
-class pdfEnum(Enum):
-    KAL = "KAL"
-    Inkord = "Inkord"
-    PakLijstRoute = "PakLijstRoute"
-    PakLijstCategory = "PakLijstCategory"
 
 
 class saveLocations:
