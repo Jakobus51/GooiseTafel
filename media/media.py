@@ -41,3 +41,7 @@ class paths:
     Print = Path(
         r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Print.png"
     )
+
+    GTSoftwareLogo = Path(
+        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\GTSoftwareLogo.png"
+    )

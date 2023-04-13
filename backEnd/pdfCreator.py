@@ -19,8 +19,8 @@ from functools import partial
 from pathlib import Path
 from os import path
 from subprocess import Popen
-from backEnd.classes.pdfHelper import PdfHelper
-from backEnd.classes.appEnum import AppEnum
+from backEnd.dataClasses.pdfHelper import PdfHelper
+from backEnd.dataClasses.appEnum import AppEnum
 
 
 def createPDF(

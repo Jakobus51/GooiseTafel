@@ -7,8 +7,8 @@ from backEnd.gtHelpers import (
 from backEnd.constants import orders
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
-from backEnd.classes.pdfHelper import PdfHelper
-from backEnd.classes.appEnum import AppEnum
+from backEnd.dataClasses.pdfHelper import PdfHelper
+from backEnd.dataClasses.appEnum import AppEnum
 
 
 def runPakLijst(

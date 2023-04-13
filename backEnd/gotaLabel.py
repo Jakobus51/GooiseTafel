@@ -2,8 +2,8 @@ from pandas import DataFrame, read_excel
 from backEnd.gtHelpers import prepareExactData
 from backEnd.constants import orders
 from pathlib import Path
-from backEnd.classes.labelHelper import LabelHelper
-from backEnd.classes.appEnum import AppEnum
+from backEnd.dataClasses.labelHelper import LabelHelper
+from backEnd.dataClasses.appEnum import AppEnum
 
 
 def fetchOrders(filePathOrders: Path):
@@ -41,6 +41,9 @@ def sortOrders(rawOrderData: DataFrame) -> dict:
 
     # Remove all non-product rows
     orderData = orderData[orderData["quantity"].notna()]
+
+    # Only save the date and not the time of the column (date is the first part before the space)
+    orderData["deliveryDate"] = orderData["deliveryDate"].astype(str).str.split().str[0]
 
     # depending on whether the list is asked per route or per category, if per category additional data prep is needed
     return createDictFromColumn(orderData, "deliveryMethod")

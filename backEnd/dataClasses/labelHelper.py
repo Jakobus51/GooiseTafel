@@ -1,5 +1,5 @@
-from backEnd.classes.appEnum import AppEnum
-from backEnd.classes.labelInterface import GTlabel
+from backEnd.dataClasses.appEnum import AppEnum
+from backEnd.dataClasses.labelInterface import GTlabel
 from backEnd.gtHelpers import explodeRows
 
 
@@ -24,7 +24,6 @@ class LabelHelper:
         self.routesToPrint = routesToPrint
 
     def setLabels(self, labels):
-        print("succes")
         self.labels = labels
 
     def getDictionaryKeys(self):
@@ -59,7 +58,7 @@ class LabelHelper:
         else:
             return []
 
-    def setLabels(self):
+    def setLabelsFromDictionaries(self):
         labels = []
         for key in self.routesToPrint:
             extendedLabelDataPerRoute = explodeRows(self.routesToPrint[key])

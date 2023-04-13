@@ -1,4 +1,4 @@
-from backEnd.classes.appEnum import AppEnum
+from backEnd.dataClasses.appEnum import AppEnum
 
 
 class PdfHelper:

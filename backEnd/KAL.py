@@ -5,10 +5,10 @@ from backEnd.gtHelpers import (
     getDateOfExactFile,
 )
 from backEnd.constants import orders, customers
-from backEnd.classes.pdfHelper import PdfHelper
+from backEnd.dataClasses.pdfHelper import PdfHelper
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
-from backEnd.classes.appEnum import AppEnum
+from backEnd.dataClasses.appEnum import AppEnum
 
 
 def runKal(

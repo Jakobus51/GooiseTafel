@@ -1,9 +1,9 @@
-from backEnd.gotaLabel import runGotaLabel
+from backEnd.gotaLabel import fetchOrders
 from backEnd.constants import saveLocations as sl
 
 if __name__ == "__main__":
-    ordersFile = "inkord-orders.xlsx"
+    ordersFile = "gotalabel-orders.xlsx"
     filePathOrders = sl.GotaLabelInput / ordersFile
 
-    runGotaLabel(filePathOrders, sl.GotaLabelOutput)
+    fetchOrders(filePathOrders)
     print("Finished gotaLabel run")

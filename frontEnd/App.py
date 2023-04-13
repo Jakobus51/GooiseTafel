@@ -14,10 +14,11 @@ from traceback import format_tb
 from tkinter import messagebox
 from pathlib import Path
 from backEnd.gtHelpers import setDirectories
-from backEnd.classes.labelHelper import LabelHelper
-from backEnd.classes.appEnum import AppEnum
-from backEnd.classes.labelInterface import GTlabel
+from backEnd.dataClasses.labelHelper import LabelHelper
+from backEnd.dataClasses.appEnum import AppEnum
+from backEnd.dataClasses.labelInterface import GTlabel
 from tkinter.scrolledtext import ScrolledText
+from backEnd.labelCreator import createLabels
 
 
 class App(tk.Tk):
@@ -62,6 +63,10 @@ class App(tk.Tk):
         self.geometry("1200x800")
         self.title("Gooise Tafel Software")
         self.configure(padx=5, pady=5)
+
+        # Set the logo of the toplevel window
+        self.GTSoftwareLogo = tk.PhotoImage(file=paths.GTSoftwareLogo)
+        self.iconphoto(False, self.GTSoftwareLogo)
 
         # Container is where the menu and applications are in
         mainContainer = tk.Frame(self)
@@ -461,7 +466,7 @@ class GotaLabel(tk.Frame):
 
         # Set title and subtitle
         controller.createTitle(self, "GotaLabel", 0, 0, 4)
-        controller.createSubTitle(self, f"Input", 1, 0)
+        controller.createSubTitle(self, f"Input{controller.extraWhiteSpace}", 1, 0)
 
         # create User input where you ask the orders file
         controller.createAskUserInput(
@@ -474,9 +479,11 @@ class GotaLabel(tk.Frame):
         )
         btnImport.configure(command=lambda: importOrders())
 
-        controller.createSubTitle(self, f"Selectie", 4, 0)
+        controller.createSubTitle(self, f"Selectie{controller.extraWhiteSpace}", 4, 0)
         self.stCheckBoxContainer = ScrolledText(self, height=20, state="disabled")
-        self.stCheckBoxContainer.grid(row=5, column=1, sticky="nsew", padx=5, pady=3)
+        self.stCheckBoxContainer.grid(
+            row=5, column=1, columnspan=2, sticky="nsew", padx=5, pady=3
+        )
 
         btnSelectAll = tk.Button(
             self,
@@ -518,11 +525,12 @@ class GotaLabel(tk.Frame):
                 )
 
         def printLabels():
-            """Print the label"""
+            """Print the labels by first filtering on the selected routes, then converting the orders into GTLabels
+            and lastly sending them the the labelCreator class (createLabels)"""
             try:
                 self.getRoutesToPrint()
-                self.labelInput.setLabels()
-
+                self.labelInput.setLabelsFromDictionaries()
+                createLabels(self.labelInput, sl.GotaLabelOutput)
                 messagebox.showinfo(
                     "Success",
                     controller.printSuccessMessage,
@@ -548,12 +556,13 @@ class GotaLabel(tk.Frame):
             deliveries = self.labelInput.labelDataPerDeliveryMethod[key][
                 "customerId"
             ].nunique()
+            meals = self.labelInput.labelDataPerDeliveryMethod[key]["quantity"].sum()
 
             self.checkedList[key] = tk.BooleanVar(value=False, name=key)
             cb = ttk.Checkbutton(
                 self.stCheckBoxContainer,
                 variable=self.checkedList[key],
-                text=f"{key} ({deliveries})",
+                text=f"{key} (Leveringen: {deliveries}, Maaltijden: {meals})",
                 style="Gota.TCheckbutton",
             )
             # Insert the checkbox and start a new line
@@ -711,18 +720,20 @@ class SingleLabel(tk.Frame):
                 self.labelInput.setLabels(
                     [
                         GTlabel(
-                            self.lCustomerName,
-                            self.lCustomerId,
-                            self.lAddress,
-                            self.lZipCode,
-                            self.lCity,
-                            self.lPhoneNumber,
-                            self.lDeliveryDate,
-                            self.lProductName,
-                            self.lCustomerRemarks1,
+                            self.lCustomerName.get(),
+                            self.lCustomerId.get(),
+                            self.lAddress.get(),
+                            self.lZipCode.get(),
+                            self.lCity.get(),
+                            self.lPhoneNumber.get(),
+                            self.lDeliveryDate.get(),
+                            self.lProductName.get(),
+                            self.lCustomerRemarks1.get(),
                         )
                     ]
                 )
+                createLabels(self.labelInput, sl.GotaLabelOutput)
+
                 messagebox.showinfo(
                     "Success",
                     controller.printSuccessMessage,
