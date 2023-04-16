@@ -3,12 +3,10 @@ from backEnd.dataClasses.appEnum import AppEnum
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 from pathlib import Path
-from os import path, startfile
+from os import path
 from subprocess import Popen
 from media.media import paths
 from textwrap import wrap
-from win32api import ShellExecute
-import win32print
 
 
 def createLabels(
