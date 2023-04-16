@@ -74,6 +74,9 @@ def retrieveOrderQuantity(rawOrderData: DataFrame) -> DataFrame:
     # Create new column with the productNames based on the productIds
     summedData["productName"] = summedData["productId"].map(prod_dict)
 
+    # Remove the rows where the product name is "Bezorgkosten" from the dataFrame
+    summedData = summedData[summedData["productName"] != "Bezorgkosten"]
+
     return summedData
 
 

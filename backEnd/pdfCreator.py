@@ -200,7 +200,7 @@ def createStory(pdfInput: PdfHelper, doc: SimpleDocTemplate) -> list[any]:
             deliveries += pdfInput.deliveries[key]
 
             # Change the Productname column to the key for better user experience
-            headerText = f"{key}\n(Aantal maaltijden: {df['Hoeveelheid'].sum()}, Aantal leveringen: {pdfInput.deliveries[key]})"
+            headerText = f"{key}\n(Aantal leveringen: {pdfInput.deliveries[key]}, Aantal maaltijden: {df['Hoeveelheid'].sum()})"
             df = df.rename(columns={"Product naam": headerText})
 
             table = createTable(df, pdfInput.columnSpacing, False, colors.white)
@@ -208,7 +208,7 @@ def createStory(pdfInput: PdfHelper, doc: SimpleDocTemplate) -> list[any]:
 
         # Save some additional information on top of the page
         extraInfoText = (
-            f"Deze lijst bevat {meals} maaltijden en {deliveries} leveringen<br/><br/>"
+            f"Deze lijst bevat {deliveries} leveringen en {meals} maaltijden<br/><br/>"
         )
         extraInfo = Paragraph(extraInfoText, styles["Normal"])
         subStory.insert(0, extraInfo)

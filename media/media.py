@@ -1,47 +1,42 @@
 from pathlib import Path
+from os import path
+import sys
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = path.abspath(".")
+    return path.join(base_path, relative_path)
 
 
 class paths:
-    """Path to the logo"""
+    PROJECT_PATH = resource_path(Path(__file__).parent)
 
-    logo = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\logo.png"
-    )
+    logo = path.join(PROJECT_PATH, "logo.png")
 
-    KAL = r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\KAL.png"
+    logoBorderless = path.join(PROJECT_PATH, "logoBorderless.png")
 
-    Liex = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Liex.png"
-    )
+    KAL = path.join(PROJECT_PATH, "KAL.png")
 
-    Inkord = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Inkord.png"
-    )
+    Liex = path.join(PROJECT_PATH, "Liex.png")
 
-    GotaLabel = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\GotaLabel.png"
-    )
+    Inkord = path.join(PROJECT_PATH, "Inkord.png")
 
-    SingleLabel = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\SingleLabel.png"
-    )
+    GotaLabel = path.join(PROJECT_PATH, "GotaLabel.png")
 
-    PakLijst = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\PakLijst.png"
-    )
+    SingleLabel = path.join(PROJECT_PATH, "SingleLabel.png")
 
-    Run = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Run.png"
-    )
+    PakLijst = path.join(PROJECT_PATH, "PakLijst.png")
 
-    Import = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Import.png"
-    )
+    Run = path.join(PROJECT_PATH, "Run.png")
 
-    Print = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\Print.png"
-    )
+    Import = path.join(PROJECT_PATH, "Import.png")
 
-    GTSoftwareLogo = Path(
-        r"C:\Users\Jakob\Documents\Malt\Gooise_Tafel\repo\GooiseTafel\media\GTSoftwareLogo.png"
-    )
+    Print = path.join(PROJECT_PATH, "Print.png")
+
+    GTSoftwareLogo = path.join(PROJECT_PATH, "GTSoftwareLogo.png")

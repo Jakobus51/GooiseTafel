@@ -7,3 +7,4 @@ class AppEnum(Enum):
     PakLijstRoute = "PakLijstRoute"
     PakLijstCategory = "PakLijstCategory"
     GotaLabel = "GotaLabel"
+    SingleLabel = "SingleLabel"

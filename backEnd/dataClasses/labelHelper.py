@@ -11,11 +11,14 @@ class LabelHelper:
     # deliveries: dict #Some extra information
     labels: list[GTlabel]  # List of the actual labels that will be printed
     routesToPrint: dict  # Filtered routes based on selection of user in the frond end
+    dateOfOrders: str
 
-    def __init__(self, type: AppEnum):
+    def __init__(self, type: AppEnum, dateOfOrders: str):
         self.type = type
         self.labelDataPerDeliveryMethod = None
         self.labels = None
+        self.routesToPrint = None
+        self.dateOfOrders = dateOfOrders
 
     def setTableData(self, labelDataPerDeliveryMethod):
         self.labelDataPerDeliveryMethod = labelDataPerDeliveryMethod

@@ -61,6 +61,9 @@ def sortOrders(rawOrderData: DataFrame, isPerRoute: bool) -> dict:
     # Remove all non-product rows
     orderData = orderData[orderData["quantity"].notna()]
 
+    # Remove the rows where the product name is "Bezorgkosten" from the dataFrame
+    orderData = orderData[orderData["productName"] != "Bezorgkosten"]
+
     # depending on whether the list is asked per route or per category, if per category additional data prep is needed
     return (
         createDictFromColumn(orderData, "deliveryMethod")

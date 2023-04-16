@@ -5,7 +5,7 @@ from backEnd.constants import saveLocations as sl
 from backEnd.labelCreator import createLabels
 
 if __name__ == "__main__":
-    labelInput = LabelHelper(AppEnum.GotaLabel)
+    labelInput = LabelHelper(AppEnum.GotaLabel, "16-04-2023")
 
     lCustomerName = "Jakob van Jakobsen Met Een Hele Lange Achternaam"
     lCustomerId = "123456789"
@@ -15,7 +15,7 @@ if __name__ == "__main__":
     lPhoneNumber = "06 40559395/ 076 5216952"
     lDeliveryDate = "27-03-2023"
     lProductName = "NATRIUMARM Lekkerbek Hollandaisesaus, snijbonen& puree-warm"
-    lCustomerRemarks1 = "test 4. size: 95x48, margins: t=3, b=3, r=3, l=3"
+    lCustomerRemarks1 = "Ma-di-wo, speciaal afleveren via de achterdeur"
 
     lCustomerName2 = "Jakob Damen"
     lAddress2 = "Straatweg 9D"

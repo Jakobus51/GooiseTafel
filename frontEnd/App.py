@@ -1,6 +1,19 @@
 #!/usr/bin/python3
-import tkinter as tk
-import tkinter.ttk as ttk
+from tkinter import (
+    Tk,
+    PhotoImage,
+    Frame,
+    Label,
+    Entry,
+    Button,
+    StringVar,
+    BooleanVar,
+    END,
+)
+from tkinter.ttk import Style as TStyle
+from tkinter.ttk import Button as TButton
+from tkinter.ttk import Checkbutton as TCheckbutton
+from tkinter.ttk import OptionMenu as TOptionMenu
 from media.media import paths
 from tkinter import font as tkfont
 from backEnd.constants import saveLocations as sl
@@ -19,13 +32,14 @@ from backEnd.dataClasses.appEnum import AppEnum
 from backEnd.dataClasses.labelInterface import GTlabel
 from tkinter.scrolledtext import ScrolledText
 from backEnd.labelCreator import createLabels
+from datetime import date
 
 
-class App(tk.Tk):
+class App(Tk):
     def __init__(self, *args, **kwargs):
-        tk.Tk.__init__(self, *args, **kwargs)
+        Tk.__init__(self, *args, **kwargs)
         # Makes everything a bit sharper
-        self.tk.call("tk", "scaling", 1.5)
+        self.call("tk", "scaling", 1.5)
 
         # Set default fonts
         self.titleFont = tkfont.Font(
@@ -36,7 +50,7 @@ class App(tk.Tk):
         self.subNormalFont = tkfont.Font(family="Helvetica", size=9)
 
         # ttk widget fonts need to be set through styles
-        s = ttk.Style()
+        s = TStyle()
         s.configure("TCheckbutton", font=("Helvetica", 9))
         s.configure("Gota.TCheckbutton", font=("Helvetica", 9), background="white")
 
@@ -51,13 +65,12 @@ class App(tk.Tk):
         self.orderSuccessMessage = "Success, de orders zijn geïmporteerd"
         self.orderFailureMessage = "Er is iets misgegaan. Controleer of de juiste documenten geselecteerd zijn.\r\n\r\nAls dit probleem zich blijft voordoen neem dan contact op met Jakob.\r\n\r\nError location:"
 
-        self.printFailureMessage = "Er is iets misgegaan. Controleer of alle velden goed staan.\r\n\r\nAls dit probleem zich blijft voordoen neem dan contact op met Jakob.\r\n\r\nError location:"
+        self.printFailureMessage = "Er is iets misgegaan. Controleer of alle velden goed staan en of de outputFile niet open staat.\r\n\r\nAls dit probleem zich blijft voordoen neem dan contact op met Jakob.\r\n\r\nError location:"
         self.printSuccessMessage = "Success, de label(s) zijn naar de printer verstuurd"
 
-        self.runLogo = tk.PhotoImage(file=paths.Run)
-        self.importLogo = tk.PhotoImage(file=paths.Import)
-        self.printLogo = tk.PhotoImage(file=paths.Print)
-        self.extraWhiteSpace = "      "
+        self.runLogo = PhotoImage(file=paths.Run)
+        self.importLogo = PhotoImage(file=paths.Import)
+        self.printLogo = PhotoImage(file=paths.Print)
 
         # Global settings
         self.geometry("1200x800")
@@ -65,11 +78,11 @@ class App(tk.Tk):
         self.configure(padx=5, pady=5)
 
         # Set the logo of the toplevel window
-        self.GTSoftwareLogo = tk.PhotoImage(file=paths.GTSoftwareLogo)
+        self.GTSoftwareLogo = PhotoImage(file=paths.GTSoftwareLogo)
         self.iconphoto(False, self.GTSoftwareLogo)
 
         # Container is where the menu and applications are in
-        mainContainer = tk.Frame(self)
+        mainContainer = Frame(self)
         mainContainer.pack(side="top", fill="both", expand=True)
         # makes the frames fill the entire width of the screen
         mainContainer.grid_columnconfigure(0, weight=1)
@@ -96,7 +109,7 @@ class App(tk.Tk):
         frame.tkraise()
 
     def createMenuButton(self, container, image, pageName, column):
-        btnMenu = ttk.Button(
+        btnMenu = TButton(
             container,
             image=image,
             text=pageName,
@@ -108,23 +121,23 @@ class App(tk.Tk):
         return btnMenu
 
     def createTitle(self, container, text, row, column, columnSpan):
-        lblTitle = tk.Label(container, text=text, font=self.titleFont)
+        lblTitle = Label(container, text=text, font=self.titleFont)
         lblTitle.grid(
             row=row, column=column, columnspan=columnSpan, sticky="nsew", pady=(8, 0)
         )
         return lblTitle
 
     def createSubTitle(self, container, text, row, column):
-        lblSubTitle = tk.Label(container, text=text, font=self.subTitleFont)
-        lblSubTitle.grid(row=row, column=column, sticky="nsew", pady=3, padx=(20, 0))
+        lblSubTitle = Label(container, text=text, font=self.subTitleFont)
+        lblSubTitle.grid(row=row, column=column, sticky="w", pady=3, padx=(20, 0))
         return lblSubTitle
 
     def createAskUserInput(
         self, container, text, row, column, inputFile, initialDir, isFile, fileType
     ):
-        lblFrontText = tk.Label(container, text=text, font=self.normalFont)
-        lblFrontText.grid(row=row, column=column, sticky="nsew", pady=3)
-        entPath = tk.Entry(
+        lblFrontText = Label(container, text=text, font=self.normalFont)
+        lblFrontText.grid(row=row, column=column, sticky="w", pady=3, padx=(20, 0))
+        entPath = Entry(
             container,
             textvariable=inputFile,
             width=100,
@@ -134,7 +147,7 @@ class App(tk.Tk):
             row=row, column=column + 1, columnspan=2, sticky="nsew", pady=3, padx=5
         )
         if isFile:
-            btnAksInput = tk.Button(
+            btnAksInput = Button(
                 container,
                 text="Select",
                 command=lambda: self.selectFile(inputFile, initialDir, fileType),
@@ -143,7 +156,7 @@ class App(tk.Tk):
                 font=self.subNormalFont,
             )
         else:
-            btnAksInput = tk.Button(
+            btnAksInput = Button(
                 container,
                 text="Select",
                 command=lambda: self.selectOutputDir(inputFile, initialDir),
@@ -152,16 +165,16 @@ class App(tk.Tk):
                 font=self.subNormalFont,
             )
         btnAksInput.grid(
-            row=row, column=column + 3, sticky="nsew", padx=(5, 22), pady=3
+            row=row, column=column + 3, sticky="nsew", padx=(5, 20), pady=3
         )
         return
 
     def spacer(self, container, row):
-        spacer = tk.Label(container, text="")
+        spacer = Label(container, text="")
         spacer.grid(row=row, column=0)
 
     def createCheckbox(self, container, text, row, column, inputVariable):
-        cbCheckBox = ttk.Checkbutton(
+        cbCheckBox = TCheckbutton(
             container,
             text=text,
             variable=inputVariable,
@@ -169,8 +182,8 @@ class App(tk.Tk):
         cbCheckBox.grid(row=row, column=column, sticky="nsew", padx=5, pady=3)
         return cbCheckBox
 
-    def createRunButton(self, container, text, row, column, image) -> ttk.Button:
-        btnRun = ttk.Button(
+    def createRunButton(self, container, text, row, column, image):
+        btnRun = TButton(
             container,
             image=image,
             text="    " + text,
@@ -179,25 +192,38 @@ class App(tk.Tk):
         btnRun.grid(row=row, column=column, sticky="nsew", padx=5, pady=3)
         return btnRun
 
+    def createHelperButton(self, container, text, row, column):
+        btnHelper = Button(
+            container,
+            text=text,
+            padx=10,
+            pady=2,
+            font=self.subNormalFont,
+        )
+        btnHelper.grid(row=row, column=column, sticky="nsew", padx=(5, 20), pady=3)
+        return btnHelper
+
     def createDropDown(self, container, text, row, column, selectedVariable, command):
-        lblText = tk.Label(container, text=text, font=self.normalFont)
+        lblText = Label(container, text=text, font=self.normalFont)
         # put the label and optionMenu in the same column but center one west and other one east to make them closer to eachother
         lblText.grid(row=row, column=column, sticky="w")
-        omDropDown = ttk.OptionMenu(container, selectedVariable, command=command)
+        omDropDown = TOptionMenu(container, selectedVariable, command=command)
         omDropDown.grid(row=row, column=column, sticky="e")
         return omDropDown
 
     def createLabelEntryRow(self, container, text, row, column, entryTextVariable):
-        lblFrontText = tk.Label(container, text=text, font=self.normalFont)
-        lblFrontText.grid(row=row, column=column, sticky="nsew", pady=3)
-        entPath = tk.Entry(
+        lblFrontText = Label(container, text=text, font=self.normalFont)
+        lblFrontText.grid(row=row, column=column, sticky="w", pady=3, padx=(20, 0))
+        entPath = Entry(
             container,
             textvariable=entryTextVariable,
             font=self.subNormalFont,
         )
-        entPath.grid(row=row, column=column + 1, columnspan=2, sticky="nsew", pady=3)
+        entPath.grid(
+            row=row, column=column + 1, columnspan=2, sticky="nsew", pady=3, padx=5
+        )
 
-    def selectFile(self, inputFile: tk.StringVar, initialDir: Path, fileType: str):
+    def selectFile(self, inputFile: StringVar, initialDir: Path, fileType: str):
         """Asks the user which file he wants to use,"""
 
         if fileType == "xlsx" or fileType == "xls":
@@ -213,7 +239,7 @@ class App(tk.Tk):
         if filename:
             inputFile.set(filename)
 
-    def selectOutputDir(self, outputDir: tk.StringVar, initialDir: Path):
+    def selectOutputDir(self, outputDir: StringVar, initialDir: Path):
         """Asks the user where he wants to save the output"""
 
         filename = askdirectory(
@@ -224,11 +250,11 @@ class App(tk.Tk):
             outputDir.set(filename)
 
 
-class Menu(tk.Frame):
+class Menu(Frame):
     """Creates the menu with its corresponding buttons"""
 
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
 
         self.grid_columnconfigure(0, weight=1)
@@ -238,12 +264,12 @@ class Menu(tk.Frame):
         self.grid_columnconfigure(4, weight=1)
         self.grid_columnconfigure(5, weight=1)
 
-        self.logoKal = tk.PhotoImage(file=paths.KAL)
-        self.logoLiex = tk.PhotoImage(file=paths.Liex)
-        self.logoInkord = tk.PhotoImage(file=paths.Inkord)
-        self.logoGotaLabel = tk.PhotoImage(file=paths.GotaLabel)
-        self.logoSingleLabel = tk.PhotoImage(file=paths.SingleLabel)
-        self.logoPakLijst = tk.PhotoImage(file=paths.PakLijst)
+        self.logoKal = PhotoImage(file=paths.KAL)
+        self.logoLiex = PhotoImage(file=paths.Liex)
+        self.logoInkord = PhotoImage(file=paths.Inkord)
+        self.logoGotaLabel = PhotoImage(file=paths.GotaLabel)
+        self.logoSingleLabel = PhotoImage(file=paths.SingleLabel)
+        self.logoPakLijst = PhotoImage(file=paths.PakLijst)
 
         controller.createMenuButton(self, self.logoKal, "KAL", 0)
         controller.createMenuButton(self, self.logoLiex, "Liex", 1)
@@ -253,23 +279,23 @@ class Menu(tk.Frame):
         controller.createMenuButton(self, self.logoPakLijst, "PakLijst", 5)
 
 
-class KAL(tk.Frame):
+class KAL(Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
         # Make the last column span the screen, making the title center
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        ordersFile = tk.StringVar()
-        customersFile = tk.StringVar()
-        outputDir = tk.StringVar(value=sl.KALOutput)
-        showPdfBool = tk.BooleanVar(value=True)
+        ordersFile = StringVar()
+        customersFile = StringVar()
+        outputDir = StringVar(value=sl.KALOutput)
+        showPdfBool = BooleanVar(value=True)
 
         # Set title and subtitle
         controller.createTitle(self, "KAL", 0, 0, 4)
-        controller.createSubTitle(self, f"Input{controller.extraWhiteSpace}", 1, 0)
+        controller.createSubTitle(self, f"Input", 1, 0)
 
         # create User input where you ask the orders file
         controller.createAskUserInput(
@@ -283,7 +309,7 @@ class KAL(tk.Frame):
 
         # Make some space and set output subtitle
         controller.spacer(self, 4)
-        controller.createSubTitle(self, f"Output{controller.extraWhiteSpace}", 5, 0)
+        controller.createSubTitle(self, f"Output", 5, 0)
 
         # Ask for the location to save the pdf
         controller.createAskUserInput(
@@ -321,26 +347,26 @@ class KAL(tk.Frame):
                 )
 
 
-class Liex(tk.Frame):
+class Liex(Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
         # Make the last column span the screen, making the title center
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        WebShopOrdersFile = tk.StringVar()
-        customersFile = tk.StringVar()
-        outputDir = tk.StringVar(value=sl.LiexOutput)
+        WebShopOrdersFile = StringVar()
+        customersFile = StringVar()
+        outputDir = StringVar(value=sl.LiexOutput)
 
         # Set title and subtitle
         controller.createTitle(self, "Liex", 0, 0, 4)
-        controller.createSubTitle(self, f"Input{controller.extraWhiteSpace}", 1, 0)
+        controller.createSubTitle(self, f"Input", 1, 0)
 
         # create User input where you ask the webshop orders file
         controller.createAskUserInput(
-            self, "LightSpeed:", 2, 0, WebShopOrdersFile, sl.LiexInput, True, "csv"
+            self, "Webshop Orders:", 2, 0, WebShopOrdersFile, sl.LiexInput, True, "csv"
         )
 
         # create User input where you ask the customer file
@@ -350,7 +376,7 @@ class Liex(tk.Frame):
 
         # Make some space and set output subtitle
         controller.spacer(self, 4)
-        controller.createSubTitle(self, f"Output{controller.extraWhiteSpace}", 5, 0)
+        controller.createSubTitle(self, f"Output", 5, 0)
 
         # Ask for the location to save the pdf
         controller.createAskUserInput(
@@ -383,22 +409,22 @@ class Liex(tk.Frame):
                 )
 
 
-class Inkord(tk.Frame):
+class Inkord(Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
         # Make the last column span the screen, making the title center
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        ordersFile = tk.StringVar()
-        outputDir = tk.StringVar(value=sl.InkordOutput)
-        showPdfBool = tk.BooleanVar(value=True)
+        ordersFile = StringVar()
+        outputDir = StringVar(value=sl.InkordOutput)
+        showPdfBool = BooleanVar(value=True)
 
         # Set title and subtitle
         controller.createTitle(self, "Inkord", 0, 0, 4)
-        controller.createSubTitle(self, f"Input{controller.extraWhiteSpace}", 1, 0)
+        controller.createSubTitle(self, f"Input", 1, 0)
 
         # create User input where you ask the orders file
         controller.createAskUserInput(
@@ -407,7 +433,7 @@ class Inkord(tk.Frame):
 
         # Make some space and set output subtitle
         controller.spacer(self, 3)
-        controller.createSubTitle(self, f"Output{controller.extraWhiteSpace}", 4, 0)
+        controller.createSubTitle(self, f"Output", 4, 0)
 
         # Ask for the location to save the pdf
         controller.createAskUserInput(
@@ -446,27 +472,27 @@ class Inkord(tk.Frame):
                 )
 
 
-class GotaLabel(tk.Frame):
+class GotaLabel(Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
         # Makes the entry widget the biggest and make the second and third column equal length
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        ordersFile = tk.StringVar()
-        self.labelInput = LabelHelper(AppEnum.GotaLabel)
+        ordersFile = StringVar()
+        self.labelInput = LabelHelper(AppEnum.GotaLabel, True)
 
         # set up variable
-        self.selectedDeliveryMethod = tk.StringVar("")
-        self.selectedCustomerName = tk.StringVar("")
-        self.selectedProductName = tk.StringVar("")
+        self.selectedDeliveryMethod = StringVar("")
+        self.selectedCustomerName = StringVar("")
+        self.selectedProductName = StringVar("")
         self.checkedList = {}
 
         # Set title and subtitle
         controller.createTitle(self, "GotaLabel", 0, 0, 4)
-        controller.createSubTitle(self, f"Input{controller.extraWhiteSpace}", 1, 0)
+        controller.createSubTitle(self, f"Input", 1, 0)
 
         # create User input where you ask the orders file
         controller.createAskUserInput(
@@ -479,42 +505,31 @@ class GotaLabel(tk.Frame):
         )
         btnImport.configure(command=lambda: importOrders())
 
-        controller.createSubTitle(self, f"Selectie{controller.extraWhiteSpace}", 4, 0)
+        controller.createSubTitle(self, f"Selectie", 4, 0)
         self.stCheckBoxContainer = ScrolledText(self, height=20, state="disabled")
         self.stCheckBoxContainer.grid(
             row=5, column=1, columnspan=2, sticky="nsew", padx=5, pady=3
         )
 
-        btnSelectAll = tk.Button(
-            self,
-            text="Select all",
-            command=lambda: self.selectAll(),
-            padx=10,
-            pady=2,
-            font=controller.subNormalFont,
-        )
-        btnSelectAll.grid(row=5, column=0, sticky="n", padx=5, pady=3)
-        btnReset = tk.Button(
-            self,
-            text="Reset",
-            command=lambda: self.reset(),
-            padx=10,
-            pady=2,
-            font=controller.subNormalFont,
-        )
-        btnReset.grid(row=5, column=0, sticky="s", padx=5, pady=3)
+        btnSelectAll = controller.createHelperButton(self, "Select all", 5, 3)
+        btnSelectAll.configure(command=lambda: self.selectAll())
+        btnSelectAll.grid(sticky="new")
+
+        btnReset = controller.createHelperButton(self, "Reset", 5, 3)
+        btnReset.configure(command=lambda: self.reset())
+        btnReset.grid(sticky="sew")
 
         controller.spacer(self, row=6)
         # Create button and assign import orders command to it
         btnPrint = controller.createRunButton(
-            self, "Print Label", 7, 1, controller.printLogo
+            self, "Print Labels", 7, 1, controller.printLogo
         )
         btnPrint.configure(command=lambda: printLabels())
 
         def importOrders():
             """Fetches the orders and set the appropriate fields with the given import data"""
             try:
-                self.labelInput = fetchOrders(Path(ordersFile.get()))
+                self.labelInput = fetchOrders(Path(ordersFile.get()), True)
                 self.cleanUp()
                 self.fillCheckBoxes()
 
@@ -527,30 +542,28 @@ class GotaLabel(tk.Frame):
         def printLabels():
             """Print the labels by first filtering on the selected routes, then converting the orders into GTLabels
             and lastly sending them the the labelCreator class (createLabels)"""
-            try:
-                self.getRoutesToPrint()
-                self.labelInput.setLabelsFromDictionaries()
-                createLabels(self.labelInput, sl.GotaLabelOutput)
-                messagebox.showinfo(
-                    "Success",
-                    controller.printSuccessMessage,
-                )
+            if self.checkIfOneRouteIsChecked():
+                try:
+                    self.getRoutesToPrint()
+                    self.labelInput.setLabelsFromDictionaries()
+                    createLabels(self.labelInput, sl.GotaLabelOutput)
 
-            except Exception as err:
-                messagebox.showerror(
-                    "Error",
-                    controller.printFailureMessage + format_tb(err.__traceback__)[0],
-                )
+                except Exception as err:
+                    messagebox.showerror(
+                        "Error",
+                        controller.printFailureMessage
+                        + format_tb(err.__traceback__)[0],
+                    )
 
     def cleanUp(self, *args):
         """Clear the text field and also the checkedList dictionary"""
         self.stCheckBoxContainer.config(state="normal")
-        self.stCheckBoxContainer.delete("1.0", tk.END)
+        self.stCheckBoxContainer.delete("1.0", END)
         self.stCheckBoxContainer.config(state="disabled")
         self.checkedList.clear()
 
     def fillCheckBoxes(self, *args):
-        """Fill the scrollable text box with checkboxes. Each entry in the dictionary gets its own checkbox and tk.BooleanVar"""
+        """Fill the scrollable text box with checkboxes. Each entry in the dictionary gets its own checkbox and BooleanVar"""
         self.stCheckBoxContainer.config(state="normal")
         for key in self.labelInput.labelDataPerDeliveryMethod:
             deliveries = self.labelInput.labelDataPerDeliveryMethod[key][
@@ -558,8 +571,8 @@ class GotaLabel(tk.Frame):
             ].nunique()
             meals = self.labelInput.labelDataPerDeliveryMethod[key]["quantity"].sum()
 
-            self.checkedList[key] = tk.BooleanVar(value=False, name=key)
-            cb = ttk.Checkbutton(
+            self.checkedList[key] = BooleanVar(value=False, name=key)
+            cb = TCheckbutton(
                 self.stCheckBoxContainer,
                 variable=self.checkedList[key],
                 text=f"{key} (Leveringen: {deliveries}, Maaltijden: {meals})",
@@ -588,23 +601,36 @@ class GotaLabel(tk.Frame):
                 routesToPrint[key] = self.labelInput.labelDataPerDeliveryMethod[key]
         self.labelInput.setRoutesToPrint(routesToPrint)
 
+    def checkIfOneRouteIsChecked(self, *args):
+        """Checks if at least one checkbox is checked if so return True, otherwise show message and return False"""
+        for key in self.checkedList:
+            if self.checkedList[key].get():
+                return True
+        messagebox.showinfo(
+            "Error",
+            "Selecteer minstens één route",
+        )
+        return False
 
-class SingleLabel(tk.Frame):
+
+class SingleLabel(Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
         # Makes the entry widget the biggest and make the second and third column equal length
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        ordersFile = tk.StringVar()
-        self.labelInput = LabelHelper(AppEnum.GotaLabel)
+        ordersFile = StringVar()
+        self.labelInput = LabelHelper(
+            AppEnum.SingleLabel, date.today().strftime("%d-%m-%Y")
+        )
 
         # set up variable
-        self.selectedDeliveryMethod = tk.StringVar("")
-        self.selectedCustomerName = tk.StringVar("")
-        self.selectedProductName = tk.StringVar("")
+        self.selectedDeliveryMethod = StringVar("")
+        self.selectedCustomerName = StringVar("")
+        self.selectedProductName = StringVar("")
 
         # Set title and subtitle
         controller.createTitle(self, "SingleLabel", 0, 0, 4)
@@ -654,15 +680,15 @@ class SingleLabel(tk.Frame):
         controller.createSubTitle(self, f"Label Velden", 8, 0)
 
         # all variables used for the label making
-        self.lCustomerName = tk.StringVar()
-        self.lCustomerId = tk.StringVar()
-        self.lAddress = tk.StringVar()
-        self.lZipCode = tk.StringVar()
-        self.lCity = tk.StringVar()
-        self.lPhoneNumber = tk.StringVar()
-        self.lDeliveryDate = tk.StringVar()
-        self.lProductName = tk.StringVar()
-        self.lCustomerRemarks1 = tk.StringVar()
+        self.lCustomerName = StringVar()
+        self.lCustomerId = StringVar()
+        self.lAddress = StringVar()
+        self.lZipCode = StringVar()
+        self.lCity = StringVar()
+        self.lPhoneNumber = StringVar()
+        self.lDeliveryDate = StringVar()
+        self.lProductName = StringVar()
+        self.lCustomerRemarks1 = StringVar()
 
         # all widgets used for the label making
         startRow = 9
@@ -690,7 +716,12 @@ class SingleLabel(tk.Frame):
             self, "Opmerking:", startRow + 8, 0, self.lCustomerRemarks1
         )
 
+        btnReset = controller.createHelperButton(self, "Reset", startRow + 8, 3)
+        btnReset.configure(command=lambda: self.resetFields())
+        btnReset.grid(sticky="nsew")
+
         controller.spacer(self, startRow + 9)
+
         # Create button and assign import orders command to it
         btnPrint = controller.createRunButton(
             self, "Print Label", startRow + 10, 1, controller.printLogo
@@ -700,7 +731,7 @@ class SingleLabel(tk.Frame):
         def importOrders():
             """Fetches the orders and set the appropriate fields with the given import data"""
             try:
-                self.labelInput = fetchOrders(Path(ordersFile.get()))
+                self.labelInput = fetchOrders(Path(ordersFile.get()), False)
                 self.resetDropDowns()
                 messagebox.showinfo(
                     "Success",
@@ -732,12 +763,7 @@ class SingleLabel(tk.Frame):
                         )
                     ]
                 )
-                createLabels(self.labelInput, sl.GotaLabelOutput)
-
-                messagebox.showinfo(
-                    "Success",
-                    controller.printSuccessMessage,
-                )
+                createLabels(self.labelInput, sl.SingleLabelOutput)
 
             except Exception as err:
                 messagebox.showerror(
@@ -792,23 +818,35 @@ class SingleLabel(tk.Frame):
         self.lProductName.set(product["productName"].values[0])
         self.lCustomerRemarks1.set(product["customerRemarks1"].values[0])
 
+    def resetFields(self, *args):
+        """Empty all the fields"""
+        self.lCustomerName.set("")
+        self.lCustomerId.set("")
+        self.lAddress.set("")
+        self.lZipCode.set("")
+        self.lCity.set("")
+        self.lPhoneNumber.set("")
+        self.lDeliveryDate.set("")
+        self.lProductName.set("")
+        self.lCustomerRemarks1.set("")
 
-class PakLijst(tk.Frame):
+
+class PakLijst(Frame):
     def __init__(self, parent, controller):
-        tk.Frame.__init__(self, parent)
+        Frame.__init__(self, parent)
         self.controller = controller
         # Makes the entry widget the biggest and make the second and third column equal length
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        ordersFile = tk.StringVar()
-        outputDir = tk.StringVar(value=sl.PakLijstOutput)
-        showPdfBool = tk.BooleanVar(value=True)
+        ordersFile = StringVar()
+        outputDir = StringVar(value=sl.PakLijstOutput)
+        showPdfBool = BooleanVar(value=True)
 
         # Set title and subtitle
         controller.createTitle(self, "PakLijst", 0, 0, 4)
-        controller.createSubTitle(self, f"Input{controller.extraWhiteSpace}", 1, 0)
+        controller.createSubTitle(self, f"Input", 1, 0)
 
         # create User input where you ask the orders file
         controller.createAskUserInput(
@@ -817,7 +855,7 @@ class PakLijst(tk.Frame):
 
         # Make some space and set output subtitle
         controller.spacer(self, 3)
-        controller.createSubTitle(self, f"Output{controller.extraWhiteSpace}", 4, 0)
+        controller.createSubTitle(self, f"Output", 4, 0)
 
         # Ask for the location to save the pdf
         controller.createAskUserInput(

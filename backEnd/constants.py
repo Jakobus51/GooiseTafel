@@ -89,8 +89,9 @@ class saveLocations:
     KALInput = input / "KAL"
     LiexInput = input / "WebShop Orders (Liex)"
     InkordInput = input / "Inkord"
-    GotaLabelInput = input / "Dag Orders (GotaLabel, PakLijst)"
-    PakLijstInput = input / "Dag Orders (GotaLabel, PakLijst)"
+    GotaLabelInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
+    SingleLabelInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
+    PakLijstInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
 
     CustomersInput = input / "KlantenBestand"
 
@@ -99,4 +100,5 @@ class saveLocations:
     LiexOutput = output / "Liex"
     InkordOutput = output / "Inkord"
     GotaLabelOutput = output / "GotaLabel"
+    SingleLabelOutput = output / "SingleLabel"
     PakLijstOutput = output / "PakLijst"

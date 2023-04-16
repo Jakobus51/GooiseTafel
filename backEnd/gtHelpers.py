@@ -111,6 +111,8 @@ def setDirectories():
         sl.CustomersInput,
         sl.PakLijstInput,
         sl.PakLijstOutput,
+        sl.SingleLabelInput,
+        sl.SingleLabelOutput,
     ]:
         if not path.exists(location):
             makedirs(location)
