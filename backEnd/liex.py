@@ -134,4 +134,4 @@ def saveAsCsv(exportFolder: Path, exportableOrders: DataFrame, dateRange: str) -
     """
     exportFileName = f"liex ({dateRange}).csv"
     exportPath = exportFolder / exportFileName
-    exportableOrders.to_csv(exportPath, header=False, index=False)
+    exportableOrders.to_csv(exportPath, header=False, index=False, sep=";")

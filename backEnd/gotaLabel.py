@@ -1,4 +1,4 @@
-from pandas import DataFrame, read_excel
+from pandas import DataFrame, read_excel, to_datetime
 from backEnd.gtHelpers import prepareExactData, getDeliveryDateRange
 from backEnd.constants import orders
 from pathlib import Path
@@ -57,8 +57,13 @@ def sortOrders(rawOrderData: DataFrame) -> dict:
     # Remove all non-product rows
     orderData = orderData[orderData["quantity"].notna()]
 
+    print(orderData["deliveryDate"])
     # Only save the date and not the time of the column (date is the first part before the space)
-    orderData["deliveryDate"] = orderData["deliveryDate"].astype(str).str.split().str[0]
+    orderData["deliveryDate"] = to_datetime(orderData["deliveryDate"]).dt.strftime(
+        "%d-%m-%Y"
+    )
+    # orderData["deliveryDate"] = orderData["deliveryDate"].astype(str).str.split().str[0]
+    print(orderData["deliveryDate"])
 
     # Remove the rows where the product name is "Bezorgkosten" from the dataFrame
     orderData = orderData[orderData["productName"] != "Bezorgkosten"]
