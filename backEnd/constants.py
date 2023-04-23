@@ -1,6 +1,10 @@
 from pathlib import Path
 
 
+class appVersion:
+    appVersion = "v1.02"
+
+
 class orders:
     """Constant used for creating dataFrames of order export of Exact."""
 

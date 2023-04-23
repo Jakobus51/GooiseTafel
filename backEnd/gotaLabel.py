@@ -4,6 +4,7 @@ from backEnd.constants import orders
 from pathlib import Path
 from backEnd.dataClasses.labelHelper import LabelHelper
 from backEnd.dataClasses.appEnum import AppEnum
+from numpy import sort
 
 
 def fetchOrders(filePathOrders: Path, isGotaLabel: bool):
@@ -57,16 +58,17 @@ def sortOrders(rawOrderData: DataFrame) -> dict:
     # Remove all non-product rows
     orderData = orderData[orderData["quantity"].notna()]
 
-    print(orderData["deliveryDate"])
     # Only save the date and not the time of the column (date is the first part before the space)
     orderData["deliveryDate"] = to_datetime(orderData["deliveryDate"]).dt.strftime(
         "%d-%m-%Y"
     )
     # orderData["deliveryDate"] = orderData["deliveryDate"].astype(str).str.split().str[0]
-    print(orderData["deliveryDate"])
 
     # Remove the rows where the product name is "Bezorgkosten" from the dataFrame
     orderData = orderData[orderData["productName"] != "Bezorgkosten"]
+
+    # Sort on zipcode as requested (makes it easier for the delivery guys)
+    orderData = orderData.sort_values("zipCode")
 
     # depending on whether the list is asked per route or per category, if per category additional data prep is needed
     return createDictFromColumn(orderData, "deliveryMethod")
@@ -82,7 +84,8 @@ def createDictFromColumn(orderData: DataFrame, columnName: str) -> dict:
     Returns:
         dict: Sorted dictionary with keys equal to the deliveryRoute and values are dataFrames with the order data
     """
-    keys = orderData[columnName].unique()
+    # Get unique entries of the given column and sort them alphabetically
+    keys = sort(orderData[columnName].unique())
     dict = {}
     for key in keys:
         dict[key] = orderData[orderData[columnName] == key]

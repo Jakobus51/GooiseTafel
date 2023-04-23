@@ -1,0 +1,10 @@
+v1.02:
+	- Sort labels per zipcode alphabetically in GotaLabel and SingleLabel
+	- Sort customer names and product names alphabetically in SingleLabel
+	- When orders are unmatched in Liex trow customer OrdersUnmatchedError which contains the names of who could not be matched
+	- KAL can also be exported as an Excel
+	- Improved error handling. Different error messages for wrong input, empty input or if output already open
+
+v1.01:
+	- Fixed bug where the date was wrong format (yyyy-mm-dd instead of dd-mm-yyyy)
+	- Fixed bug where Liex was saved with a "," as the deliminater instead of a ';'

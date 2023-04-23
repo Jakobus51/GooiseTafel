@@ -1,6 +1,7 @@
 from backEnd.dataClasses.appEnum import AppEnum
 from backEnd.dataClasses.labelInterface import GTlabel
 from backEnd.gtHelpers import explodeRows
+from numpy import sort
 
 
 class LabelHelper:
@@ -38,7 +39,7 @@ class LabelHelper:
     def getCustomerNamesFromKey(self, key):
         if self.labelDataPerDeliveryMethod is not None:
             data = self.labelDataPerDeliveryMethod[key]
-            customers = data["customerName"].unique()
+            customers = sort(data["customerName"].unique())
             return list(customers)
         else:
             return []
@@ -47,7 +48,7 @@ class LabelHelper:
         if self.labelDataPerDeliveryMethod is not None:
             data = self.labelDataPerDeliveryMethod[key]
             customerOrders = data[data["customerName"] == customerName]
-            productNames = customerOrders["productName"].unique()
+            productNames = sort(customerOrders["productName"].unique())
             return list(productNames)
         else:
             return []

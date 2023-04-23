@@ -28,7 +28,7 @@ def createPDF(
     outputFolder: Path,
     showPDF: bool,
 ) -> None:
-    """Creates a pdf based on the given input. Is either for the KAL ot Inkord application
+    """Creates a pdf based on the given input.
 
     Args:
         pdfInput (PdfHelper): Object containing all information needed to create the pdf

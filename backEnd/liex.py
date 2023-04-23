@@ -2,6 +2,7 @@ from pandas import DataFrame, merge, to_datetime, read_csv, read_excel
 from backEnd.gtHelpers import prepareExactData, prepareLightSpeedData
 from backEnd.constants import customers, liexCsvExport
 from pathlib import Path
+from backEnd.dataClasses.customErrors import UnMatchedOrdersError
 
 
 def runLiex(filePathWebShop: Path, filePathCustomers: Path, exportFolder: Path) -> None:
@@ -77,12 +78,11 @@ def matchWebShopCustomers(
     maskRemaining = webShopData["Order_ID"].isin(webShopMatched["Order_ID"])
     webShopDataRemaining = webShopData[~maskRemaining]
 
-    # Check if some webShop Orders are unmatched
+    # Check if some webShop Orders are unmatched if so custom raise error
     if webShopDataRemaining.size == 0:
         return webShopMatched
-
     else:
-        print("Some orders were not matched")
+        raise UnMatchedOrdersError(webShopDataRemaining)
 
 
 def prepareCsv(webShopMatched: DataFrame) -> DataFrame:

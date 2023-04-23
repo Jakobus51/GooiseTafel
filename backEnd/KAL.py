@@ -1,4 +1,4 @@
-from pandas import DataFrame, read_excel
+from pandas import DataFrame, read_excel, ExcelWriter
 from backEnd.gtHelpers import (
     prepareExactData,
     getDeliveryDateRange,
@@ -9,10 +9,16 @@ from backEnd.dataClasses.pdfHelper import PdfHelper
 from pathlib import Path
 from backEnd.pdfCreator import createPDF
 from backEnd.dataClasses.appEnum import AppEnum
+from os import path
+from subprocess import Popen
 
 
 def runKal(
-    filePathOrders: Path, filePathCustomers: Path, outputFolder: Path, showPDF: bool
+    filePathOrders: Path,
+    filePathCustomers: Path,
+    outputFolder: Path,
+    showOutput: bool,
+    isPDF: bool,
 ) -> None:
     """Finds all customers who have yet to order and exports a pdf of the results
 
@@ -20,7 +26,8 @@ def runKal(
         filePathOrders (Path): Location where the orders are to be found
         filePathCustomers (Path): Location where the customers are to be found
         outputFolder (Path): Place where you want to save the pdf
-        showPDF (bool): Shows the pdf if true
+        showOutput (bool): Shows the pdf if true
+        isPDF (bool): True if you want a pdf as output otherwise it is an excel
     """
     rawOrderData = read_excel(filePathOrders, header=None)
     rawCustomerData = read_excel(filePathCustomers, header=None)
@@ -33,11 +40,14 @@ def runKal(
     customersYetToOrder = retrieveCustomersYetToOrder(rawOrderData, rawCustomerData)
     dividedCustomers = divideCustomers(customersYetToOrder)
 
+    # Although it is called pdf, the excel output uses the same table data so the pdfInput also gets fed into the createExcel method
     pdfInput = PdfHelper(AppEnum.KAL, deliveryDateRange, dateOfExactOutput)
     formatForPdf(dividedCustomers, pdfInput)
-
-    # Create the pdf
-    createPDF(pdfInput, outputFolder, showPDF)
+    # Creates the pdf or excel
+    if isPDF:
+        createPDF(pdfInput, outputFolder, showOutput)
+    else:
+        createExcel(pdfInput, outputFolder, showOutput)
 
 
 def retrieveCustomersYetToOrder(
@@ -72,6 +82,7 @@ def retrieveCustomersYetToOrder(
     mask = customerData["customerId"].isin(orderData["customerId"])
     # Remove all customers that are already in the orderData
     filteredCustomers = customerData[~mask]
+    print(filteredCustomers)
 
     return filteredCustomers
 
@@ -121,3 +132,34 @@ def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper) -> dict:
         data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
         dictCustomers[key] = data
     pdfInput.setTableData(dictCustomers)
+
+
+def createExcel(
+    pdfInput: PdfHelper,
+    outputFolder: Path,
+    showOutput: bool,
+) -> None:
+    """Creates an excel based on the given input and auto-widths the columns
+    !Although it is called pdfInput, it contains also all the data needed to create the excel
+
+    Args:
+        pdfInput (PdfHelper): Object containing all information needed to create the excel
+        outputFolder (Path): Where the pdf needs to be saved
+        showOutput (bool): Whether or not you want to show the pdf after creation
+    """
+    outputFile = path.join(outputFolder, f"{pdfInput.title}.xlsx")
+
+    with ExcelWriter(outputFile) as writer:
+        for key in pdfInput.tableData:
+            df = pdfInput.tableData[key].copy()
+            df.to_excel(writer, sheet_name=key, index=None)
+
+            # Makes the width of the columns auto width, so the data shows properly in the excel, stole it from StackOverflow
+            for column in df:
+                column_length = max(df[column].astype(str).map(len).max(), len(column))
+                col_idx = df.columns.get_loc(column)
+                writer.sheets[key].set_column(col_idx, col_idx, column_length + 1)
+
+    # Open the excel if that option was selected
+    if showOutput:
+        Popen([outputFile], shell=True)
