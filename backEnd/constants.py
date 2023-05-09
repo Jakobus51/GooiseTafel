@@ -64,6 +64,7 @@ class customers:
 class liexCsvExport:
     """Columns names used to create the csv of Liex"""
 
+    # These are the initial columns you want to save
     dataColumnNames = [
         "customerId",
         "Added",
@@ -74,6 +75,7 @@ class liexCsvExport:
         "Product_price",
     ]
 
+    # These are how the columns need to be named to be saved for Exact import
     csvColumnNames = [
         "customerId",
         "orderDate",
@@ -83,6 +85,12 @@ class liexCsvExport:
         "quantity",
         "productPrice",
     ]
+
+
+class delivery:
+    code = "9999b"
+    costFloat = 2.95
+    costStr = "2,95"
 
 
 class saveLocations:

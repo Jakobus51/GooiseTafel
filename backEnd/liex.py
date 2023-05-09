@@ -1,6 +1,6 @@
 from pandas import DataFrame, merge, to_datetime, read_csv, read_excel
 from backEnd.gtHelpers import prepareExactData, prepareLightSpeedData
-from backEnd.constants import customers, liexCsvExport
+from backEnd.constants import customers, liexCsvExport, delivery
 from pathlib import Path
 from backEnd.dataClasses.customErrors import UnMatchedOrdersError
 
@@ -17,6 +17,7 @@ def runLiex(filePathWebShop: Path, filePathCustomers: Path, exportFolder: Path) 
     dfCustomersRaw = read_excel(filePathCustomers, header=None)
 
     matchedOrders = matchWebShopCustomers(dfWebShopRaw, dfCustomersRaw)
+    matchedOrders = checkForDeliveryCosts(matchedOrders)
     exportableOrders = prepareCsv(matchedOrders)
     dateRange = getDateRange(exportableOrders)
     saveAsCsv(exportFolder, exportableOrders, dateRange)
@@ -39,20 +40,6 @@ def matchWebShopCustomers(
     customerData = prepareExactData(
         dfCustomersRaw, customers.ankerWord, customers.columnNames
     )
-
-    # # Set types and lowercase all columns that are compared
-    # webShopColumns = ["Lastname", "Zipcode", "Streetname", "E-mail"]
-    # webShopData[webShopColumns] = webShopData[webShopColumns].astype(str)
-    # webShopData[webShopColumns] = webShopData[webShopColumns].apply(
-    #     lambda x: x.str.lower()
-    # )
-    # webShopData["Number"] = webShopData["Number"].astype(int)
-
-    # customerColumns = ["customerName", "address", "zipCode", "email"]
-    # customerData[customerColumns] = customerData[customerColumns].astype(str)
-    # customerData[customerColumns] = customerData[customerColumns].apply(
-    #     lambda x: x.str.lower()
-    # )
 
     # Set types and lowercase all columns that are compared
     webShopColumns = ["Zipcode", "E-mail"]
@@ -85,8 +72,43 @@ def matchWebShopCustomers(
         raise UnMatchedOrdersError(webShopDataRemaining)
 
 
+def checkForDeliveryCosts(webShopMatched: DataFrame) -> DataFrame:
+    """Checks if customer paid delivery costs (Price_shipping) for his order,
+    if so this needs to be added as a separate product to the webShopMatched dataframe
+
+    Args:
+        webShopMatched (DataFrame): Dataframe containing all the orders matched to the customers without delivery costs rows
+
+    Returns:
+        DataFrame: Dataframe containing all the orders matched to the customers with delivery costs rows
+    """
+    if ~(webShopMatched["Price_shipping"].astype(str).isin(["", "0,00"])).all():
+        deliverCostRows = webShopMatched.loc[
+            ~(webShopMatched["Price_shipping"].isin(["", "0,00"]))
+        ]
+        for index, row in deliverCostRows.iterrows():
+            # Set product id
+            row["Product_article_code"] = delivery.code
+
+            # Checks if the total delivery cost is divisible by the standard amount
+            if float(row["Price_shipping"].replace(",", ".")) % delivery.costFloat == 0:
+                # if so save the standard amount n times
+                row["Quantity"] = int(
+                    float(row["Price_shipping"].replace(",", ".")) / delivery.costFloat
+                )
+                row["Product_price"] = delivery.costStr
+            else:
+                # Else just save the total amount once
+                row["Quantity"] = 1
+                row["Product_price"] = row["Price_shipping"]
+
+            # Add the delivery cost as a row to the dataframe
+            webShopMatched = webShopMatched.append(row)
+    return webShopMatched
+
+
 def prepareCsv(webShopMatched: DataFrame) -> DataFrame:
-    """Save only columns that are needed for the exact import
+    """Save only columns that are needed for the exact import and change column names
     Extract the dates for the orderDate and deliveryDate
 
     Args:
@@ -110,7 +132,7 @@ def getDateRange(data: DataFrame) -> str:
     """Retrieves the date range of when the orders were placed
 
     Args:
-        data (DataFrame): Dataframe of all orders who are going to be imported into exact frm which ou want to get the date range
+        data (DataFrame): Dataframe of all orders who are going to be imported into exact from which we want to get the date range
 
     Returns:
         str: a string of the date range which will be used in the file name
