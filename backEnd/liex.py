@@ -82,9 +82,9 @@ def checkForDeliveryCosts(webShopMatched: DataFrame) -> DataFrame:
     Returns:
         DataFrame: Dataframe containing all the orders matched to the customers with delivery costs rows
     """
-    if ~(webShopMatched["Price_shipping"].astype(str).isin(["", "0,00"])).all():
+    if ~(webShopMatched["Price_shipping"].astype(str).isin(["", "0,00", "0"])).all():
         deliverCostRows = webShopMatched.loc[
-            ~(webShopMatched["Price_shipping"].isin(["", "0,00"]))
+            ~(webShopMatched["Price_shipping"].isin(["", "0,00", "0"]))
         ]
         for index, row in deliverCostRows.iterrows():
             # Set product id
