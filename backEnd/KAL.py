@@ -1,4 +1,4 @@
-from pandas import DataFrame, read_excel, ExcelWriter
+from pandas import DataFrame, read_excel, ExcelWriter, concat
 from backEnd.gtHelpers import (
     prepareExactData,
     getDeliveryDateRange,
@@ -139,7 +139,7 @@ def createExcel(
     outputFolder: Path,
     showOutput: bool,
 ) -> None:
-    """Creates an excel based on the given input and auto-widths the columns
+    """Creates an excel based on the given input and auto-widths the columns and color the first column depending what kind of customer it is
     !Although it is called pdfInput, it contains also all the data needed to create the excel
 
     Args:
@@ -147,18 +147,49 @@ def createExcel(
         outputFolder (Path): Where the pdf needs to be saved
         showOutput (bool): Whether or not you want to show the pdf after creation
     """
+    # Add all dictionary dataframes toghether and add extra column called 'Soort' which is equal to the key (GT, online or normal)
+    frames = []
+    for key in pdfInput.tableData:
+        df = pdfInput.tableData[key]
+        df.insert(0, "Soort", key)
+        frames.append(df)
+    result = concat(frames)
+
     outputFile = path.join(outputFolder, f"{pdfInput.title}.xlsx")
-
     with ExcelWriter(outputFile) as writer:
-        for key in pdfInput.tableData:
-            df = pdfInput.tableData[key].copy()
-            df.to_excel(writer, sheet_name=key, index=None)
+        result.to_excel(writer, sheet_name=pdfInput.deliveryDateRange, index=None)
 
-            # Makes the width of the columns auto width, so the data shows properly in the excel, stole it from StackOverflow
-            for column in df:
-                column_length = max(df[column].astype(str).map(len).max(), len(column))
-                col_idx = df.columns.get_loc(column)
-                writer.sheets[key].set_column(col_idx, col_idx, column_length + 1)
+        # Makes the width of the columns auto width, so the data shows properly in the excel, stole it from StackOverflow
+        for column in result:
+            column_length = max(result[column].astype(str).map(len).max(), len(column))
+            col_idx = result.columns.get_loc(column)
+            writer.sheets[pdfInput.deliveryDateRange].set_column(
+                col_idx, col_idx, column_length + 1
+            )
+
+        # Change the color of the first column ("Soort" column) depending on if is GT, online or normal
+        workbook = writer.book
+        gtFormat = workbook.add_format({"bg_color": "#ADD8E6"})
+        onlineFormat = workbook.add_format({"bg_color": "#90EE90"})
+        writer.sheets[pdfInput.deliveryDateRange].conditional_format(
+            # A1048576 is the max row range
+            "A1:A1048576",
+            {
+                "type": "text",
+                "criteria": "containing",
+                "value": "GT",
+                "format": gtFormat,
+            },
+        )
+        writer.sheets[pdfInput.deliveryDateRange].conditional_format(
+            "A1:A1048576",
+            {
+                "type": "text",
+                "criteria": "containing",
+                "value": "online",
+                "format": onlineFormat,
+            },
+        )
 
     # Open the excel if that option was selected
     if showOutput:
