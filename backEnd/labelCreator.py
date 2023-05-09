@@ -68,35 +68,34 @@ def createLabels(
             )
             return originalYCoord
 
-    # Loop over all labels, all labels get drawn on a new page
+    # Loop over all labels, each label get drawn on a new page
     for label in labelInput.labels:
+        # CustomerID
+        c.setFont("Helvetica-Bold", 10)
+        c.drawString(
+            leftMargin + 4.5 * mm,
+            labelHeight - topMargin - textHeight,
+            f"{label.customerId}",
+        )
         c.setFont("Helvetica", 10)
 
         # Logo and line for better readability
         c.drawImage(
             paths.logoBorderless,
             leftMargin,
-            labelHeight - logoHeight - topMargin,
+            labelHeight - logoHeight - topMargin - newTextLine,
             logoWidth,
             logoHeight,
         )
 
-        c.setLineWidth(0.8)
         # Rectangle around logo
+        c.setLineWidth(0.8)
         c.rect(
             leftMargin,
-            labelHeight - logoHeight - topMargin,
+            labelHeight - logoHeight - topMargin - newTextLine,
             logoWidth,
             logoHeight,
         )
-
-        # # rectangle around customerID and date
-        # c.rect(
-        #     leftMargin,
-        #     labelHeight - logoHeight - topMargin - 2 * newTextLine,
-        #     logoWidth,
-        #     2 * newTextLine,
-        # )
 
         # customer Name
         newCustomerNameYLocation = wrappedText(
@@ -148,17 +147,10 @@ def createLabels(
         c.setFont("Helvetica-Bold", 10)
         c.drawString(
             leftMargin + 4.5 * mm,
-            afterLogoY,
+            afterLogoY - newTextLine,
             label.deliveryDate,
         )
         c.setFont("Helvetica", 10)
-
-        # CustomerID
-        c.drawString(
-            leftMargin + 4.5 * mm,
-            afterLogoY - newTextLine,
-            f"{label.customerId}",
-        )
 
         c.line(
             leftMargin,
