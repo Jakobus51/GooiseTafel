@@ -24,6 +24,9 @@ from frontEnd.subApps.liexFE import Liex
 from frontEnd.subApps.gotaLabelFE import GotaLabel
 from frontEnd.subApps.singleLabelFE import SingleLabel
 from frontEnd.subApps.pakLijstFE import PakLijst
+from frontEnd.subApps.orderScanFE import OrderScan
+from frontEnd.subApps.gtVultInFE import GTVultIn
+
 from backEnd.constants import appVersion
 
 
@@ -63,9 +66,13 @@ class App(Tk):
         self.runLogo = PhotoImage(file=paths.Run)
         self.importLogo = PhotoImage(file=paths.Import)
         self.printLogo = PhotoImage(file=paths.Print)
+        self.newLogo = PhotoImage(file=paths.New)
+        self.showLogo = PhotoImage(file=paths.Show)
 
         # Global settings
-        self.geometry("1200x800")
+        width = self.winfo_screenwidth()
+        height = self.winfo_screenheight()
+        self.geometry("%dx%d" % (width, height))
         self.title(f"Gooise Tafel Software ({appVersion.appVersion})")
         self.configure(padx=5, pady=5)
 
@@ -81,7 +88,16 @@ class App(Tk):
 
         self.frames = {}
         # Loop over different subApps and initialize each one
-        for F in (KAL, Inkord, Liex, GotaLabel, SingleLabel, PakLijst):
+        for F in (
+            KAL,
+            GTVultIn,
+            Inkord,
+            Liex,
+            GotaLabel,
+            SingleLabel,
+            PakLijst,
+            OrderScan,
+        ):
             page_name = F.__name__
             frame = F(parent=mainContainer, controller=self)
             self.frames[page_name] = frame
@@ -203,7 +219,9 @@ class App(Tk):
         omDropDown.grid(row=row, column=column, sticky="e")
         return omDropDown
 
-    def createLabelEntryRow(self, container, text, row, column, entryTextVariable):
+    def createLabelEntryRow(
+        self, container, text, row, column, columnspan, entryTextVariable
+    ):
         lblFrontText = Label(container, text=text, font=self.normalFont)
         lblFrontText.grid(row=row, column=column, sticky="w", pady=3, padx=(20, 0))
         entPath = Entry(
@@ -212,7 +230,12 @@ class App(Tk):
             font=self.subNormalFont,
         )
         entPath.grid(
-            row=row, column=column + 1, columnspan=2, sticky="nsew", pady=3, padx=5
+            row=row,
+            column=column + 1,
+            columnspan=columnspan,
+            sticky="nsew",
+            pady=3,
+            padx=5,
         )
 
     def selectFile(self, inputFile: StringVar, initialDir: Path, fileType: str):
@@ -282,20 +305,26 @@ class Menu(Frame):
         self.grid_columnconfigure(3, weight=1)
         self.grid_columnconfigure(4, weight=1)
         self.grid_columnconfigure(5, weight=1)
+        self.grid_columnconfigure(6, weight=1)
+        self.grid_columnconfigure(7, weight=1)
 
         self.logoKal = PhotoImage(file=paths.KAL)
+        self.logoGTVultIn = PhotoImage(file=paths.GTVultIn)
         self.logoLiex = PhotoImage(file=paths.Liex)
         self.logoInkord = PhotoImage(file=paths.Inkord)
         self.logoGotaLabel = PhotoImage(file=paths.GotaLabel)
         self.logoSingleLabel = PhotoImage(file=paths.SingleLabel)
         self.logoPakLijst = PhotoImage(file=paths.PakLijst)
+        self.logoOrderScan = PhotoImage(file=paths.OrderScan)
 
         controller.createMenuButton(self, self.logoKal, "KAL", 0)
-        controller.createMenuButton(self, self.logoLiex, "Liex", 1)
-        controller.createMenuButton(self, self.logoInkord, "Inkord", 2)
-        controller.createMenuButton(self, self.logoGotaLabel, "GotaLabel", 3)
-        controller.createMenuButton(self, self.logoSingleLabel, "SingleLabel", 4)
-        controller.createMenuButton(self, self.logoPakLijst, "PakLijst", 5)
+        controller.createMenuButton(self, self.logoGTVultIn, "GTVultIn", 1)
+        controller.createMenuButton(self, self.logoLiex, "Liex", 2)
+        controller.createMenuButton(self, self.logoInkord, "Inkord", 3)
+        controller.createMenuButton(self, self.logoGotaLabel, "GotaLabel", 4)
+        controller.createMenuButton(self, self.logoSingleLabel, "SingleLabel", 5)
+        controller.createMenuButton(self, self.logoPakLijst, "PakLijst", 6)
+        controller.createMenuButton(self, self.logoOrderScan, "OrderScan", 7)
 
 
 if __name__ == "__main__":

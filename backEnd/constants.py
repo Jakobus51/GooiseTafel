@@ -104,7 +104,7 @@ class saveLocations:
     GotaLabelInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
     SingleLabelInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
     PakLijstInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
-
+    MealOverviewInput = input / "Maaltijd Overzichten (GTVultIn)"
     CustomersInput = input / "KlantenBestand"
 
     output = default / "Output"
@@ -114,3 +114,5 @@ class saveLocations:
     GotaLabelOutput = output / "GotaLabel"
     SingleLabelOutput = output / "SingleLabel"
     PakLijstOutput = output / "PakLijst"
+    GTVultInOutput = output / "GTVultIn"
+    OrderScanOutput = output / "OrderScan"

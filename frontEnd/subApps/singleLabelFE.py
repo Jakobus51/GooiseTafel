@@ -93,27 +93,29 @@ class SingleLabel(Frame):
         # all widgets used for the label making
         startRow = 9
         controller.createLabelEntryRow(
-            self, "Klant Naam:", startRow, 0, self.lCustomerName
+            self, "Klant Naam:", startRow, 0, 2, self.lCustomerName
         )
         controller.createLabelEntryRow(
-            self, "Klant ID:", startRow + 1, 0, self.lCustomerId
-        )
-        controller.createLabelEntryRow(self, "Address:", startRow + 2, 0, self.lAddress)
-        controller.createLabelEntryRow(
-            self, "Postcode:", startRow + 3, 0, self.lZipCode
-        )
-        controller.createLabelEntryRow(self, "Plaats:", startRow + 4, 0, self.lCity)
-        controller.createLabelEntryRow(
-            self, "Telefoon:", startRow + 5, 0, self.lPhoneNumber
+            self, "Klant ID:", startRow + 1, 0, 2, self.lCustomerId
         )
         controller.createLabelEntryRow(
-            self, "Aflever Datum:", startRow + 6, 0, self.lDeliveryDate
+            self, "Address:", startRow + 2, 0, 2, self.lAddress
         )
         controller.createLabelEntryRow(
-            self, "Maaltijd:", startRow + 7, 0, self.lProductName
+            self, "Postcode:", startRow + 3, 0, 2, self.lZipCode
+        )
+        controller.createLabelEntryRow(self, "Plaats:", startRow + 4, 0, 2, self.lCity)
+        controller.createLabelEntryRow(
+            self, "Telefoon:", startRow + 5, 0, 2, self.lPhoneNumber
         )
         controller.createLabelEntryRow(
-            self, "Opmerking:", startRow + 8, 0, self.lCustomerRemarks1
+            self, "Aflever Datum:", startRow + 6, 0, 2, self.lDeliveryDate
+        )
+        controller.createLabelEntryRow(
+            self, "Maaltijd:", startRow + 7, 0, 2, self.lProductName
+        )
+        controller.createLabelEntryRow(
+            self, "Opmerking:", startRow + 8, 0, 2, self.lCustomerRemarks1
         )
 
         btnReset = controller.createHelperButton(self, "Reset", startRow + 8, 3)
