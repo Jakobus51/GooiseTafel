@@ -104,6 +104,8 @@ def checkForDeliveryCosts(webShopMatched: DataFrame) -> DataFrame:
 
             # Add the delivery cost as a row to the dataframe
             webShopMatched = webShopMatched.append(row)
+    # sort the orders by ordernummer
+    webShopMatched = webShopMatched.sort_values("Order")
     return webShopMatched
 
 
