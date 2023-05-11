@@ -264,7 +264,9 @@ class App(Tk):
         messagebox.showerror(
             "Error",
             message
-            + "\r\n\r\nAls dit probleem zich blijft voordoen neem dan contact op met Jakob.\r\n\r\nError location:"
+            + "\r\n\r\nAls dit probleem zich blijft voordoen neem dan contact op met Jakob.\r\n\r\nError: "
+            + error.args[0]
+            + "\r\n\r\nErrorLocation: "
             + format_tb(error.__traceback__)[0],
         )
 

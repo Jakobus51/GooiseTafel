@@ -62,7 +62,6 @@ def sortOrders(rawOrderData: DataFrame) -> dict:
     orderData["deliveryDate"] = to_datetime(orderData["deliveryDate"]).dt.strftime(
         "%d-%m-%Y"
     )
-    # orderData["deliveryDate"] = orderData["deliveryDate"].astype(str).str.split().str[0]
 
     # Remove the rows where the product name is "Bezorgkosten" from the dataFrame
     orderData = orderData[orderData["productName"] != "Bezorgkosten"]

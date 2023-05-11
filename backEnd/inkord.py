@@ -56,7 +56,9 @@ def retrieveOrderQuantity(rawOrderData: DataFrame) -> DataFrame:
     ].fillna(method="ffill")
 
     # use str.replace() to remove non-numeric characters from the 'productId' column
-    orderData["productId"] = orderData["productId"].str.replace(r"\D+", "")
+    orderData["productId"] = orderData["productId"].str.replace(
+        r"[^\d.]", "", regex=True
+    )
 
     # Check if cell contains a "-" if that is the case, remove all characters to the right of it
     orderData["productName"] = orderData["productName"].astype(str)
@@ -94,5 +96,5 @@ def formatForPdf(data: DataFrame, pdfInput: PdfHelper):
     # sort on alphabetical order
     data.sort_values("productName", inplace=True)
     # Rename to dutch friendly names that will be shown in the pdf
-    data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
+    data.columns = pdfInput.pdfDisplayColumns
     pdfInput.setTableData({"normal": data})

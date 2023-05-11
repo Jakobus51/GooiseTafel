@@ -139,7 +139,8 @@ def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper):
         summedData = summed.to_frame().reset_index()
 
         # Rename to dutch friendly names that will be shown in the pdf
-        summedData.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
+        summedData.columns = pdfInput.pdfDisplayColumns
+        # summedData.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
         dictCustomers[key] = summedData
 
     pdfInput.setDeliveries(deliveries)

@@ -129,7 +129,8 @@ def formatForPdf(dictCustomers: dict, pdfInput: PdfHelper) -> dict:
         data.fillna("", inplace=True)
 
         # Set columns to dutch readable names
-        data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
+        data.columns = pdfInput.pdfDisplayColumns
+        # data.set_axis(pdfInput.pdfDisplayColumns, axis=1, inplace=True)
         dictCustomers[key] = data
     pdfInput.setTableData(dictCustomers)
 
