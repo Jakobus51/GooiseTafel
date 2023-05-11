@@ -80,16 +80,6 @@ class NewOrders(Frame):
         # Customer selection
         customerSubtitle = controller.createSubTitle(self, "Klant (1 uit 14)", 4, 0)
 
-        # Previous button
-        btnPreviousCustomer = controller.createHelperButton(self, "  <- Vorige", 4, 1)
-        btnPreviousCustomer.grid(sticky="e")
-        btnPreviousCustomer.configure(command=lambda: self.previousCustomer())
-
-        # Next button
-        btnNextCustomer = controller.createHelperButton(self, "volgende ->", 4, 2)
-        btnNextCustomer.grid(sticky="w")
-        btnNextCustomer.configure(command=lambda: self.nextCustomer())
-
         # Customer information fields
         controller.createLabelEntryRow(self, "Klant ID:", 5, 0, 2, self.lCustomerId)
         controller.createLabelEntryRow(self, "Klant Naam:", 6, 0, 2, self.lCustomerName)
@@ -97,7 +87,19 @@ class NewOrders(Frame):
             self, "Opmerking:", 7, 0, 2, self.lCustomerRemarks1
         )
 
-        controller.spacer(self, 8)
+        # Previous button
+        btnPreviousCustomer = controller.createHelperButton(self, "  <- Vorige", 8, 1)
+        btnPreviousCustomer.grid(sticky="e")
+        btnPreviousCustomer.configure(command=lambda: self.previousCustomer())
+
+        # Next button
+        btnNextCustomer = controller.createHelperButton(self, "volgende ->", 8, 2)
+        btnNextCustomer.grid(sticky="w")
+        btnNextCustomer.configure(command=lambda: self.nextCustomer())
+
+        # controller.spacer(self, 9)
+
+        # Maaltijd selectie
         controller.createSubTitle(self, "Maaltijd", 9, 0)
         self.ddMeal = controller.createDropDown(
             self,
@@ -107,8 +109,6 @@ class NewOrders(Frame):
             self.selectedMeal,
             None,
         )
-        self.ddMeal.set_menu(None, *["maaltijd1", "maaltijd2"])
-
         self.ddDate = controller.createDropDown(
             self,
             "Selecteer de dag:",
@@ -117,8 +117,6 @@ class NewOrders(Frame):
             self.selectedDate,
             None,
         )
-        self.ddDate.set_menu(None, *["MA 13 FEB", "DI 14 FEB"])
-
         self.ddQuantity = controller.createDropDown(
             self,
             "Selecteer de hoeveelheid:",
@@ -127,6 +125,10 @@ class NewOrders(Frame):
             self.selectedQuantity,
             None,
         )
+
+        # Mock data
+        self.ddMeal.set_menu(None, *["maaltijd1", "maaltijd2"])
+        self.ddDate.set_menu(None, *["MA 13 FEB", "DI 14 FEB"])
         self.ddQuantity.set_menu(None, *["1", "2", "3"])
 
         # Order toevoegen
@@ -167,34 +169,37 @@ class ShowOrders(Frame):
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
-        names = []
-        ages = []
-        genders = []
-        salaries = []
-
-        # generate random data and append to lists
-        for i in range(30):
-            names.append("Person " + str(i + 1))
-            ages.append(random.randint(20, 60))
-            genders.append(random.choice(["M", "F"]))
-            salaries.append(random.randint(30000, 100000))
-
-        # create the dataframe using the lists
-        data = {"name": names, "age": ages, "gender": genders, "salary": salaries}
+        # Mock data
+        data = {
+            "customerId": [675763201, 675763201, 675763201, 675763201],
+            "orderDate": ["23/04/2023", "23/04/2023", "23/04/2023", "23/04/2023"],
+            "orderId": ["ORD17902", "ORD17902", "ORD17902", "ORD17902"],
+            "deliveryDate": ["02/05/2023", "02/05/2023", "02/05/2023", "02/05/2023"],
+            "productId": ["70027589k", "70027725k", "70038157k", "9999b"],
+            "quantity": [1, 1, 1, 1],
+            "productPrice": [8.99, 8.99, 8.99, 2.95],
+        }
         df = DataFrame(data)
+        customerSubtitle = controller.createSubTitle(self, "Orders", 0, 0)
 
-        # create the dataframe using the dictionary
-        df = DataFrame(data)
-
-        controller
+        tableFrame = Frame(self)
+        tableFrame.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=5, pady=5)
         tbOrders = Table(
-            self,
+            tableFrame,
             dataframe=df,
             showtoolbar=False,
             showstatusbar=False,
+            maxcellwidth=1500,
         )
-        tbOrders.grid(row=0, column=0, columnspan=4, sticky="nsew")
+        tbOrders.font = "Helvetica"
+        tbOrders.rowselectedcolor = "#F28B3F"
         tbOrders.show()
+        tbOrders.columnwidths["productPrice"] = 300
+
+        # Delete button for selected order
+        btnDeleteRow = controller.createHelperButton(self, "Verwijder order", 1, 3)
+        btnDeleteRow.grid(sticky="sw")
+        btnDeleteRow.configure(command=lambda: tbOrders.deleteRow())
 
         controller.spacer(self, 2)
 
