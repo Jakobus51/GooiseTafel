@@ -82,6 +82,7 @@ def checkForDeliveryCosts(webShopMatched: DataFrame) -> DataFrame:
     Returns:
         DataFrame: Dataframe containing all the orders matched to the customers with delivery costs rows
     """
+    # check if there are rows which are not empty, 0 or 0.00
     if ~(webShopMatched["Price_shipping"].astype(str).isin(["", "0,00", "0"])).all():
         deliverCostRows = webShopMatched.loc[
             ~(webShopMatched["Price_shipping"].isin(["", "0,00", "0"]))
@@ -103,7 +104,7 @@ def checkForDeliveryCosts(webShopMatched: DataFrame) -> DataFrame:
                 row["Product_price"] = row["Price_shipping"]
 
             # Add the delivery cost as a row to the dataframe
-            webShopMatched = webShopMatched.append(row)
+            webShopMatched.loc[len(webShopMatched)] = row
     # sort the orders by ordernummer
     webShopMatched = webShopMatched.sort_values("Order")
     return webShopMatched
@@ -120,7 +121,8 @@ def prepareCsv(webShopMatched: DataFrame) -> DataFrame:
         DataFrame: Datframe which can directly be converted to a csv
     """
     webShopMatched = webShopMatched[liexCsvExport.dataColumnNames]
-    webShopMatched.set_axis(liexCsvExport.csvColumnNames, axis=1, inplace=True)
+    webShopMatched.columns = liexCsvExport.csvColumnNames
+    # webShopMatched.set_axis(liexCsvExport.csvColumnNames, axis=1, inplace=True)
     webShopMatched["orderDate"] = webShopMatched["orderDate"].str.extract(
         r"(\d{2}-\d{2}-\d{4})"
     )

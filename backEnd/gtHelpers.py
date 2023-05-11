@@ -72,7 +72,7 @@ def prepareExactData(
     """
     data = dropFirstRows(rawData, ankerWord)
     data.dropna(axis=1, how="all", inplace=True)
-    data.set_axis(columnNames, axis=1, inplace=True)
+    data.columns = columnNames
     return data
 
 
