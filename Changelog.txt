@@ -1,3 +1,8 @@
+v1.03:
+	- Liex now takes delivery cost into account
+	- KAL excel is all in one sheet with color coded customers
+	- Customer ID is on top of labels in GotaLabel and SingleLabel
+
 v1.02:
 	- Sort labels per zipcode alphabetically in GotaLabel and SingleLabel
 	- Sort customer names and product names alphabetically in SingleLabel
