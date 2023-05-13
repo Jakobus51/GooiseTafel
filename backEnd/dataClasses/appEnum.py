@@ -8,3 +8,4 @@ class AppEnum(Enum):
     PakLijstCategory = "PakLijstCategory"
     GotaLabel = "GotaLabel"
     SingleLabel = "SingleLabel"
+    GTVultIn = "GTVultIn"
