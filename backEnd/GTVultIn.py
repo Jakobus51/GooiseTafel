@@ -11,8 +11,8 @@ class GTVultIn:
 
     type: AppEnum  # What kind of app
     mealOverviewRaw: DataFrame  # Raw meal overview excel put into a Dataframe
-    orderDays: list[str]  # List of when the orders can be placed
-    mealsAndCodesDict: dict  # Dictionary with keys being the meal codes and values being the meals written out
+    orderDaysDict: dict  # Dictionary with keys being the orderDay as written down in the excel and the value the corresponding dateTime object
+    mealsAndCodesDict: dict  # Dictionary with keys being the meals written out and values the mealcodes
     displayOrders: DataFrame  # Dataframe containing information that is shown in the order overview in the front end
     KALcustomers: DataFrame  # Customers for which the orders are filled in, retrieved from the KAL aplication
 
@@ -27,15 +27,23 @@ class GTVultIn:
             DataFrame: Empty dataframe wherein the display orders will be shown
         """
         displayOrdersColumns = [
-            "Klant",
             "Klant nr.",
-            "Maaltijd Code",
+            "Klant",
+            "Code",
             "Maaltijd",
-            "AfleverText",
+            "Wanneer",
             "Afleverdatum",
-            "Hoeveelheid",
+            "Aantal",
         ]
         return DataFrame(columns=displayOrdersColumns)
+
+    def setDisplayOrders(self, displayOrders: DataFrame):
+        """Set the display Orders
+
+        Args:
+            displayOrders (DataFrame): Datframe containing the display customers
+        """
+        self.displayOrders = displayOrders
 
     def setKALcustomers(self, KALcustomers: DataFrame):
         """Set the KAL customers
@@ -52,7 +60,7 @@ class GTVultIn:
             filePathMealOverview (Path):The file location of the meal overview excel
         """
         self.mealOverviewRaw = self.getMealOverviewRaw(filePathMealOverview)
-        self.orderDays = self.getOrderDaysDict()
+        self.orderDaysDict = self.getOrderDaysDict()
         self.mealsAndCodesDict = self.getMealsAndCodesDict()
 
     def getMealOverviewRaw(self, filePathMealOverview: Path) -> DataFrame:
@@ -71,8 +79,8 @@ class GTVultIn:
         Also filters out dates where you can not order, indicated with "GEEN"
 
         Returns:
-            dict: Dictionary where the key is the orderDay as written down in the excel and the value the corresponding dateTime object
-            When a orderDay is indicated with KOELVERS, the deliveryday is equal to the one before it as it wil be delivered on that day
+            dict: Dictionary where the key is the orderDay as written down in the excel and the value the corresponding dateTime object.
+            When an orderDay is indicated with KOELVERS, the deliveryday is equal to the one before it as it wil be delivered on that day
         """
         excelOrderDays = self.getExcelOrderDays()
         year, week = self.getWeekAndYear()
@@ -193,7 +201,7 @@ class GTVultIn:
     ):
         """Adds a new order to the display DF which is shown in the front end"""
         # Format the date into the correct format
-        deliveryDate = self.orderDays[selectedDateText].strftime("%d/%m/%Y")
+        deliveryDate = self.orderDaysDict[selectedDateText].strftime("%d/%m/%Y")
 
         # Add an k to the mealcode when it is KOELVERS otherwise add a w
         if "KOELVERS" in selectedDateText:
@@ -206,12 +214,23 @@ class GTVultIn:
             "Klant": customerName,
             "Klant nr.": customerId,
             "Maaltijd": selectedMeal,
-            "Maaltijd Code": mealCode,
-            "AfleverText": selectedDateText,
+            "Code": mealCode,
+            "Wanneer": selectedDateText,
             "Afleverdatum": deliveryDate,
-            "Hoeveelheid": selectedQuantity,
+            "Aantal": selectedQuantity,
         }
+        length1 = len(self.displayOrders)
+        self.displayOrders.reset_index(drop=True, inplace=True)
         self.displayOrders.loc[len(self.displayOrders)] = newRow
+        length2 = len(self.displayOrders)
+        print("")
+
+    def deleteOrder(self, index):
+        length1 = len(self.displayOrders)
+        self.displayOrders.drop([index, index], axis=0, inplace=True)
+        self.displayOrders.reset_index(drop=True)
+        length2 = len(self.displayOrders)
+        print("")
 
     def createCSv(self, displayOrdersFE: DataFrame, exportFolder: Path):
         """Makes the csv which can be imported into Exact
@@ -226,8 +245,8 @@ class GTVultIn:
         year, week = self.getWeekAndYear()
         exportableOrders["orderId"] = f"GTS{year}{week}"
         exportableOrders["deliveryDate"] = displayOrdersFE["Afleverdatum"]
-        exportableOrders["productId"] = displayOrdersFE["Maaltijd Code"]
-        exportableOrders["quantity"] = displayOrdersFE["Hoeveelheid"]
+        exportableOrders["productId"] = displayOrdersFE["Code"]
+        exportableOrders["quantity"] = displayOrdersFE["Aantal"]
 
         csvTitle = f"GTVultIn ({year}-{week})"
         saveAsCsv(exportFolder, exportableOrders, csvTitle)

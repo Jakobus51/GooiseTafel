@@ -13,7 +13,7 @@ from backEnd.labelCreator import createLabels
 from datetime import date
 
 
-class SingleLabel(Frame):
+class SingleLabelFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller

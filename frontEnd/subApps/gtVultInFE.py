@@ -1,17 +1,22 @@
-from tkinter import Frame, StringVar, Button
+from tkinter import Frame, StringVar, IntVar
 from backEnd.constants import saveLocations as sl
 from pandastable import Table, TableModel
+from pathlib import Path
+from tkinter import messagebox
+from backEnd.gtVultIn import GTVultIn
 from pandas import DataFrame
-import random
 
 
-class GTVultIn(Frame):
+class GTVultInFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
         # Makes the entry widget the biggest and make the second and third column equal length
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
+
+        # Information about GTVultIn is passed around applications so the variable is set in the master frame
+        self.gtVultInInput = GTVultIn()
 
         # Create frames for the show orders and new orders screens
         self.frames = {}
@@ -35,6 +40,18 @@ class GTVultIn(Frame):
         )
         btnShowOrders.configure(command=lambda: self.frames["ShowOrders"].tkraise())
 
+    def setKalCustomers(self, KALCustomers: DataFrame):
+        """Fills the KALCustomers and fills the customer selection labels with first entry
+        Is called when KAL is finished running
+
+        Args:
+            KALCustomers (DataFrame): Customer retrieved from KAL for which can be easily ordered
+        """
+        if KALCustomers.size != 0:
+            self.gtVultInInput.setKALcustomers(KALCustomers)
+            self.frames["NewOrders"].customerIndex.set(0)
+            self.frames["NewOrders"].setCustomerFields(0)
+
 
 class NewOrders(Frame):
     def __init__(self, parent, controller):
@@ -48,19 +65,24 @@ class NewOrders(Frame):
         # all variables used for the label making
         self.lCustomerName = StringVar()
         self.lCustomerId = StringVar()
-        self.lCustomerRemarks1 = StringVar()
+        self.lCustomerRemarks = StringVar()
 
-        self.selectedMeal = StringVar("")
-        self.selectedDate = StringVar("")
-        self.selectedQuantity = StringVar("")
+        # keeps track on which KAL customer you are
+        self.customerIndex = IntVar()
 
+        # Variables which keep track of the order selection variables
+        selectedMeal = StringVar("")
+        selectedDate = StringVar("")
+        selectedQuantity = StringVar("")
+
+        # File containing the meal overview excel
         mealOverviewFile = StringVar()
 
         controller.createSubTitle(self, "Input", 0, 0)
         # create User input where you ask the meal overview of the week file
         controller.createAskUserInput(
             self,
-            "Week menu:",
+            "Maaltijd Overzicht:",
             1,
             0,
             mealOverviewFile,
@@ -69,7 +91,7 @@ class NewOrders(Frame):
             "xlsx",
         )
 
-        # Create button and assign import orders command to it
+        # Create button and assign import meal overview command to it
         btnImport = controller.createRunButton(
             self, "Importeer Maaltijd Overzicht", 2, 1, controller.importLogo
         )
@@ -78,69 +100,97 @@ class NewOrders(Frame):
         controller.spacer(self, 3)
 
         # Customer selection
-        customerSubtitle = controller.createSubTitle(self, "Klant (1 uit 14)", 4, 0)
+        controller.createSubTitle(self, "Klant", 4, 0)
 
-        # Customer information fields
+        # Customer selection tooltip text
+        self.customerCountLabel = controller.createSubTitle(
+            self, "Draai eerst KAL om hier klanten te selecteren", 4, 1
+        )
+        self.customerCountLabel.grid(padx=(0, 0))
+
+        # Customer information fields, these values are used for creating the order table
         controller.createLabelEntryRow(self, "Klant ID:", 5, 0, 2, self.lCustomerId)
         controller.createLabelEntryRow(self, "Klant Naam:", 6, 0, 2, self.lCustomerName)
         controller.createLabelEntryRow(
-            self, "Opmerking:", 7, 0, 2, self.lCustomerRemarks1
+            self, "Opmerking:", 7, 0, 2, self.lCustomerRemarks
         )
+
+        # Reset the customer selection input
+        btnResetCustomer = controller.createHelperButton(self, "Reset", 7, 3)
+        btnResetCustomer.configure(command=lambda: resetCustomer())
 
         # Previous button
         btnPreviousCustomer = controller.createHelperButton(self, "  <- Vorige", 8, 1)
         btnPreviousCustomer.grid(sticky="e")
-        btnPreviousCustomer.configure(command=lambda: self.previousCustomer())
+        btnPreviousCustomer.configure(command=lambda: previousCustomer())
 
         # Next button
         btnNextCustomer = controller.createHelperButton(self, "volgende ->", 8, 2)
         btnNextCustomer.grid(sticky="w")
-        btnNextCustomer.configure(command=lambda: self.nextCustomer())
+        btnNextCustomer.configure(command=lambda: nextCustomer())
 
-        # controller.spacer(self, 9)
-
-        # Maaltijd selectie
+        # Meal selection
         controller.createSubTitle(self, "Maaltijd", 9, 0)
-        self.ddMeal = controller.createDropDown(
+
+        # Meal selection tool tip and also used to keep track of customers once imported
+        self.mealSelectionToolTip = controller.createSubTitle(
             self,
-            "Selecteer de maaltijd:",
-            10,
+            "Importeer eerst een maaltijd overzicht om hier maaltijden te selecteren",
+            9,
             1,
-            self.selectedMeal,
-            None,
         )
-        self.ddDate = controller.createDropDown(
+        self.mealSelectionToolTip.grid(padx=(0, 0), columnspan=2)
+
+        # Drop down menu's for meal selection
+        ddDate = controller.createDropDown(
             self,
             "Selecteer de dag:",
+            10,
+            1,
+            selectedDate,
+            None,
+        )
+        ddMeal = controller.createDropDown(
+            self,
+            "Selecteer de maaltijd:",
             11,
             1,
-            self.selectedDate,
+            selectedMeal,
             None,
         )
-        self.ddQuantity = controller.createDropDown(
+
+        ddQuantity = controller.createDropDown(
             self,
-            "Selecteer de hoeveelheid:",
+            "Selecteer het aantal:",
             12,
             1,
-            self.selectedQuantity,
+            selectedQuantity,
             None,
         )
 
-        # Mock data
-        self.ddMeal.set_menu(None, *["maaltijd1", "maaltijd2"])
-        self.ddDate.set_menu(None, *["MA 13 FEB", "DI 14 FEB"])
-        self.ddQuantity.set_menu(None, *["1", "2", "3"])
+        # Reset the meal selection input
+        btnResetMealSelection = controller.createHelperButton(self, "Reset", 12, 2)
+        btnResetMealSelection.grid(sticky="w")
+        btnResetMealSelection.configure(command=lambda: resetMealSelection())
 
-        # Order toevoegen
+        # Add Order button
         btnAddOrder = controller.createRunButton(
             self, "Order Toevoegen", 13, 1, controller.newLogo
         )
-        btnAddOrder.configure(command=lambda: self.addOrder())
+        btnAddOrder.configure(command=lambda: addOrder())
 
         def importOrders():
-            """Fetches the orders and set the appropriate fields with the given import data"""
+            """Fetches the orders and set the appropriate fields with the given import data
+            als clears the import meal overview tooltip on successful import"""
             try:
-                print("import")
+                self.master.gtVultInInput.loadMealOverView(Path(mealOverviewFile.get()))
+                fillDropDownMenus()
+                messagebox.showinfo(
+                    "Success",
+                    controller.mealOverviewSuccessText,
+                )
+                # Clear the tooltip
+                self.mealSelectionToolTip.configure(text="")
 
             # Error handling
             except PermissionError as permissionError:
@@ -150,14 +200,163 @@ class NewOrders(Frame):
             except Exception as error:
                 controller.generalErrorMessage(error, controller.generalFailureText)
 
-    def previousCustomer(self):
-        print("previous")
+        def fillDropDownMenus():
+            """Fills the dropdown menu with choices from the meal overview
+            Also resets the selected choices
+            """
+            ddMeal.set_menu(None, *self.master.gtVultInInput.mealsAndCodesDict.keys())
+            ddDate.set_menu(None, *self.master.gtVultInInput.orderDaysDict.keys())
+            ddQuantity.set_menu(None, *list(range(9, 0, -1)))
 
-    def nextCustomer(self):
-        print("next")
+            selectedMeal.set("")
+            selectedDate.set("")
+            selectedQuantity.set("")
 
-    def addOrder(self):
-        print("Order added")
+        def resetCustomer():
+            """Clear all customer selection input"""
+            self.lCustomerName.set("")
+            self.lCustomerId.set("")
+            self.lCustomerRemarks.set("")
+
+        def previousCustomer():
+            """Changes customer information when pressed on previous button,
+            First checks if KAL was ran
+            """
+            if checkKALCustomers():
+                currentIndex = self.customerIndex.get()
+                # Border condition, if at 0 show empty fields to make an order for customer not in KAL list
+                if currentIndex == 0 or currentIndex == -1:
+                    self.customerCountLabel.configure(
+                        text=f"GT-Klant (0 uit {self.master.gtVultInInput.KALcustomers.shape[0]})"
+                    )
+                    self.lCustomerName.set("")
+                    self.lCustomerId.set("")
+                    self.lCustomerRemarks.set("")
+                    self.customerIndex.set(-1)
+
+                else:
+                    newIndex = currentIndex - 1
+                    self.setCustomerFields(newIndex)
+                    self.customerIndex.set(newIndex)
+
+        def nextCustomer():
+            """Changes customer information when pressed on next button,
+            First checks if KAL was ran
+            """
+            if checkKALCustomers():
+                currentIndex = self.customerIndex.get()
+                # Border condition of last customer, just fill it again with last customer information
+                if (currentIndex + 1) == self.master.gtVultInInput.KALcustomers.shape[
+                    0
+                ]:
+                    self.setCustomerFields(currentIndex)
+                # Border condition when coming from zeroth index,
+                elif currentIndex == -1:
+                    self.setCustomerFields(0)
+                    self.customerIndex.set(0)
+                else:
+                    newIndex = currentIndex + 1
+                    self.setCustomerFields(newIndex)
+                    self.customerIndex.set(newIndex)
+
+        def checkKALCustomers() -> bool:
+            """First checks if Kal was ran then if it had any GT Customers
+            throws appropriate arrows if not the case
+
+            Returns:
+                bool: Returns True if customers can be selected, False otherwise
+            """
+            if hasattr(self.master.gtVultInInput, "KALcustomers"):
+                if self.master.gtVultInInput.KALcustomers.size != 0:
+                    return True
+                else:
+                    messagebox.showwarning(
+                        "Error",
+                        "De KAL uitdraai bevatten geen GT-klanten dus deze kan je ook niet selecteren.",
+                    )
+            else:
+                messagebox.showwarning(
+                    "Error",
+                    "Draai eerst de KAL applicatie voordat je GT-klanten kunt selecteren.",
+                )
+            return False
+
+        def resetMealSelection():
+            """Resets the meal selection fields"""
+            selectedMeal.set("")
+            selectedDate.set("")
+            selectedQuantity.set("")
+
+        def addOrder():
+            """Adds an order to the meal overview table in the other frame
+            First checks if all appropriate field were filled
+            """
+            if checkInputFields():
+                # Add a new order to the Display Orders DataFrame in the GTVultIn class
+                self.master.gtVultInInput.addOrder(
+                    self.lCustomerName.get(),
+                    self.lCustomerId.get(),
+                    selectedMeal.get(),
+                    selectedDate.get(),
+                    selectedQuantity.get(),
+                )
+                # Empty the selection
+                resetMealSelection()
+
+                # Redraw the table in the other frame and auto adjust its columns
+                self.master.frames["ShowOrders"].redrawTable()
+
+        def checkInputFields() -> bool:
+            """Checks if all correct fields are not empty before adding a new order
+
+            Returns:
+                bool: Returns True if all correct fields were filled
+            """
+            if self.lCustomerId.get() == "":
+                messagebox.showwarning(
+                    "Error",
+                    "De klant ID kan niet leeg zijn",
+                )
+                return False
+            if selectedMeal.get() == "":
+                messagebox.showwarning(
+                    "Error",
+                    "Selecteer eerst een maaltijd",
+                )
+                return False
+            if selectedDate.get() == "":
+                messagebox.showwarning(
+                    "Error",
+                    "Selecteer eerst een bestel dag",
+                )
+                return False
+            if selectedQuantity.get() == "":
+                messagebox.showwarning(
+                    "Error",
+                    "Selecteer eerst het aantal maaltijd(en)",
+                )
+                return False
+            return True
+
+    def setCustomerFields(self, index: int):
+        """Fill the customer selection fields based on the given index in the KAL-GTCustomers dataframe
+
+        Args:
+            index (int): Index of the row for which you want to display the customer information
+        """
+        # Tooltip text showing which customer you have currently selected
+        self.customerCountLabel.configure(
+            text=f"GT-Klant ({index + 1} uit {self.master.gtVultInInput.KALcustomers.shape[0]})"
+        )
+        self.lCustomerId.set(
+            self.master.gtVultInInput.KALcustomers["Klant Nr."].iloc[index]
+        )
+        self.lCustomerName.set(
+            self.master.gtVultInInput.KALcustomers["Naam"].iloc[index]
+        )
+        self.lCustomerRemarks.set(
+            self.master.gtVultInInput.KALcustomers["Opmerking"].iloc[index]
+        )
 
 
 class ShowOrders(Frame):
@@ -168,46 +367,90 @@ class ShowOrders(Frame):
         # Makes the entry widget the biggest and make the second and third column equal length
         self.grid_columnconfigure(1, weight=1, uniform="fred")
         self.grid_columnconfigure(2, weight=1, uniform="fred")
+        self.grid_rowconfigure(1, weight=0, uniform="fred")
 
-        # Mock data
-        data = {
-            "customerId": [675763201, 675763201, 675763201, 675763201],
-            "orderDate": ["23/04/2023", "23/04/2023", "23/04/2023", "23/04/2023"],
-            "orderId": ["ORD17902", "ORD17902", "ORD17902", "ORD17902"],
-            "deliveryDate": ["02/05/2023", "02/05/2023", "02/05/2023", "02/05/2023"],
-            "productId": ["70027589k", "70027725k", "70038157k", "9999b"],
-            "quantity": [1, 1, 1, 1],
-            "productPrice": [8.99, 8.99, 8.99, 2.95],
-        }
-        df = DataFrame(data)
-        customerSubtitle = controller.createSubTitle(self, "Orders", 0, 0)
+        # Place were you will be saving the output
+        outputDir = StringVar(value=sl.GTVultInOutput)
 
+        controller.createSubTitle(self, "Orders", 0, 0)
+
+        # Put the table in a seperate frame since that makes it easier to manage
         tableFrame = Frame(self)
         tableFrame.grid(row=1, column=0, columnspan=3, sticky="nsew", padx=5, pady=5)
-        tbOrders = Table(
+        # Load the (empty) dataframe into the table that will be shown
+        self.tbOrders = Table(
             tableFrame,
-            dataframe=df,
             showtoolbar=False,
             showstatusbar=False,
             maxcellwidth=1500,
         )
-        tbOrders.font = "Helvetica"
-        tbOrders.rowselectedcolor = "#F28B3F"
-        tbOrders.show()
-        tbOrders.columnwidths["productPrice"] = 300
+        self.redrawTable()
+        # Some cosmetics of the table
+        self.tbOrders.font = "Helvetica"
+        self.tbOrders.rowselectedcolor = "#f2b588"
+        self.tbOrders.show()
 
         # Delete button for selected order
-        btnDeleteRow = controller.createHelperButton(self, "Verwijder order", 1, 3)
+        btnDeleteRow = controller.createHelperButton(self, "Verwijder", 1, 3)
         btnDeleteRow.grid(sticky="sw")
-        btnDeleteRow.configure(command=lambda: tbOrders.deleteRow())
+        btnDeleteRow.configure(command=lambda: deleteRow())
 
-        controller.spacer(self, 2)
+        # Output
+        controller.createSubTitle(self, f"Output", 2, 0)
 
-        # Order toevoegen
-        btnAddOrder = controller.createRunButton(
-            self, "Maak csv van de orders", 3, 1, controller.runLogo
+        # Ask for the location to save the csv
+        controller.createAskUserInput(
+            self, "Opslag:", 3, 0, outputDir, sl.GTVultInOutput, False, None
         )
-        btnAddOrder.configure(command=lambda: self.addOrder())
+        controller.spacer(self, 4)
 
-    def createCSV(self):
-        print("CSV created")
+        # Button to make the orders into a csv
+        btnAddOrder = controller.createRunButton(
+            self, "Maak csv van de orders", 5, 1, controller.runLogo
+        )
+        btnAddOrder.configure(command=lambda: createCSV())
+
+        def deleteRow():
+            # self.master.gtVultInInput.deleteOrder(self.tbOrders.currentrow)
+            self.tbOrders.deleteRow()
+            self.master.gtVultInInput.setDisplayOrders(self.tbOrders.model.df)
+            self.redrawTable()
+
+        def createCSV():
+            """Make a csv of the orders in the Table frame, throw error if something goes wrong"""
+            try:
+                if checkIfDataFrameIsEmpty():
+                    self.master.gtVultInInput.createCSv(
+                        self.tbOrders.model.df, Path(outputDir.get())
+                    )
+                    messagebox.showinfo(
+                        "Success",
+                        controller.generalSuccessText,
+                    )
+            # standard error handling
+            except PermissionError as permissionError:
+                controller.permissionErrorMessage(permissionError)
+            except FileNotFoundError as fileNotFoundError:
+                controller.fileNotFoundErrorMessage(fileNotFoundError)
+            except Exception as error:
+                controller.generalErrorMessage(error, controller.generalFailureText)
+
+        def checkIfDataFrameIsEmpty() -> bool:
+            """Throw error if there are no orders
+
+            Returns:
+                bool: Returns False if there are no orders
+            """
+            if self.tbOrders.model.df.size == 0:
+                messagebox.showwarning(
+                    "Error",
+                    "Zorg ervoor dat er minstens één order is",
+                )
+                return False
+            return True
+
+    def redrawTable(self):
+        copyDf = self.master.gtVultInInput.displayOrders.copy()
+        self.tbOrders.updateModel(TableModel(copyDf))
+        # self.tbOrders.redraw()
+        self.tbOrders.autoResizeColumns()

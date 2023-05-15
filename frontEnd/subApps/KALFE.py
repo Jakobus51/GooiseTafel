@@ -10,7 +10,7 @@ from tkinter import messagebox
 from pathlib import Path
 
 
-class KAL(Frame):
+class KALFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
@@ -72,13 +72,16 @@ class KAL(Frame):
                 isPDF (bool): True if you want a pdf as output otherwise it is an excel
             """
             try:
-                runKal(
+                GTCustomers = runKal(
                     Path(ordersFile.get()),
                     Path(customersFile.get()),
                     Path(outputDir.get()),
                     showOutputBool.get(),
                     isPDF,
                 )
+                # Load the KAL custmers in the GTVultIn application
+                controller.frames["GTVultInFE"].setKalCustomers(GTCustomers)
+
                 if not showOutputBool.get():
                     messagebox.showinfo(
                         "Success",

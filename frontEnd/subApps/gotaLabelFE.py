@@ -15,7 +15,7 @@ from tkinter.scrolledtext import ScrolledText
 from backEnd.labelCreator import createLabels
 
 
-class GotaLabel(Frame):
+class GotaLabelFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller

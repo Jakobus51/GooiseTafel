@@ -19,7 +19,7 @@ def runKal(
     outputFolder: Path,
     showOutput: bool,
     isPDF: bool,
-) -> None:
+) -> DataFrame:
     """Finds all customers who have yet to order and exports a pdf of the results
 
     Args:
@@ -28,6 +28,10 @@ def runKal(
         outputFolder (Path): Place where you want to save the pdf
         showOutput (bool): Shows the pdf if true
         isPDF (bool): True if you want a pdf as output otherwise it is an excel
+
+    Returns:
+        DataFrame: Returns all the GT customers which are loaded into the GTVultIn applications
+
     """
     rawOrderData = read_excel(filePathOrders, header=None)
     rawCustomerData = read_excel(filePathCustomers, header=None)
@@ -48,6 +52,8 @@ def runKal(
         createPDF(pdfInput, outputFolder, showOutput)
     else:
         createExcel(pdfInput, outputFolder, showOutput)
+
+    return pdfInput.tableData["GT"]
 
 
 def retrieveCustomersYetToOrder(
