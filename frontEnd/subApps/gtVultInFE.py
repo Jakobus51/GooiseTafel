@@ -76,9 +76,9 @@ class NewOrders(Frame):
         self.customerIndex = IntVar()
 
         # Variables which keep track of the order selection variables
-        selectedMeal = StringVar("")
-        selectedDate = StringVar("")
-        selectedQuantity = StringVar("")
+        selectedMeal = StringVar()
+        selectedDate = StringVar()
+        selectedQuantity = StringVar()
 
         # File containing the meal overview excel
         mealOverviewFile = StringVar()
@@ -213,9 +213,7 @@ class NewOrders(Frame):
             ddDate.set_menu(None, *self.master.gtVultInInput.orderDaysDict.keys())
             ddQuantity.set_menu(None, *list(range(9, 0, -1)))
 
-            selectedMeal.set("")
-            selectedDate.set("")
-            selectedQuantity.set("")
+            resetMealSelection()
 
         def resetCustomer():
             """Clear all customer selection input"""
@@ -290,7 +288,7 @@ class NewOrders(Frame):
             """Resets the meal selection fields"""
             selectedMeal.set("")
             selectedDate.set("")
-            selectedQuantity.set("")
+            selectedQuantity.set("1")
 
         def addOrder():
             """Adds an order to the meal overview table in the other frame
