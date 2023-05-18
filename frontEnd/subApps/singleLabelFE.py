@@ -47,7 +47,13 @@ class SingleLabelFE(Frame):
         )
         btnImport.configure(command=lambda: importOrders())
 
-        controller.createSubTitle(self, f"Selectie", 4, 0)
+        controller.createSubTitle(self, f"Label", 4, 0)
+
+        # Tooltip about importing orders
+        self.customerSelectionToolTip = controller.createSubTitle(
+            self, "Importeer eerst de orders voordat je labels kan selecteren", 4, 1
+        )
+        self.customerSelectionToolTip.grid(padx=(0, 0), columnspan=2)
 
         # Make some space and add the three dropdowns to select the appropriate meal
         # You cannot set the command of the dropdown after creation so, we have to use all the self nonsens
@@ -139,6 +145,7 @@ class SingleLabelFE(Frame):
                     "Success",
                     controller.orderSuccessText,
                 )
+                self.customerSelectionToolTip.configure(text="")
 
             # Error handling
             except PermissionError as permissionError:

@@ -6,10 +6,15 @@ from tkinter import messagebox
 from backEnd.gtVultIn import GTVultIn
 from pandas import DataFrame
 
+# import matplotlib
+
 
 class GTVultInFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
+
+        # matplotlib.use("TkAgg", force=True)
+
         self.controller = controller
         # Makes the entry widget the biggest and make the second and third column equal length
         self.grid_columnconfigure(1, weight=1, uniform="fred")
@@ -392,8 +397,12 @@ class ShowOrders(Frame):
 
         # Delete button for selected order
         btnDeleteRow = controller.createHelperButton(self, "Verwijder", 1, 3)
-        btnDeleteRow.grid(sticky="sw")
+        btnDeleteRow.grid(sticky="ews")
         btnDeleteRow.configure(command=lambda: deleteRow())
+
+        # Delete all orders
+        btnDeleteAll = controller.createHelperButton(self, "Verwijder allen", 2, 3)
+        btnDeleteAll.configure(command=lambda: deleteAll())
 
         # Output
         controller.createSubTitle(self, f"Output", 2, 0)
@@ -411,10 +420,23 @@ class ShowOrders(Frame):
         btnAddOrder.configure(command=lambda: createCSV())
 
         def deleteRow():
-            # self.master.gtVultInInput.deleteOrder(self.tbOrders.currentrow)
+            """Deletes the selected row from the table and update the DisplayOrders property"""
             self.tbOrders.deleteRow()
             self.master.gtVultInInput.setDisplayOrders(self.tbOrders.model.df)
             self.redrawTable()
+
+        def deleteAll():
+            """Set an empty table as the displayOrders and use that empty Dataframe to redraw the table
+            First ask the user if he is really sure"""
+            deleteAll = messagebox.askyesno(
+                "Alles verwijderen",
+                "Weet u zeker dat u alle orders wilt verwijderen?",
+            )
+            if deleteAll:
+                self.master.gtVultInInput.setDisplayOrders(
+                    self.master.gtVultInInput.initializeShowOrders()
+                )
+                self.redrawTable()
 
         def createCSV():
             """Make a csv of the orders in the Table frame, throw error if something goes wrong"""
@@ -450,7 +472,8 @@ class ShowOrders(Frame):
             return True
 
     def redrawTable(self):
+        """Set a copy of the displayOrders as the display table"""
         copyDf = self.master.gtVultInInput.displayOrders.copy()
         self.tbOrders.updateModel(TableModel(copyDf))
-        # self.tbOrders.redraw()
-        self.tbOrders.autoResizeColumns()
+        # Reset the index otherwise funky stuff happens
+        self.tbOrders.resetIndex(ask=False, drop=True)

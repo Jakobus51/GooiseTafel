@@ -70,11 +70,15 @@ class App(Tk):
         self.showLogo = PhotoImage(file=paths.Show)
 
         # Global settings
+        self.configure(padx=5, pady=5)
+
+        # Make app fullscreen and maximized window
         width = self.winfo_screenwidth()
         height = self.winfo_screenheight()
         self.geometry("%dx%d" % (width, height))
+        self.state("zoomed")
+
         self.title(f"Gooise Tafel Software ({appVersion.appVersion})")
-        self.configure(padx=5, pady=5)
 
         # Set the logo of the toplevel window
         self.GTSoftwareLogo = PhotoImage(file=paths.GTSoftwareLogo)

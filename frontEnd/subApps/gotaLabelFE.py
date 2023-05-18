@@ -48,7 +48,14 @@ class GotaLabelFE(Frame):
         )
         btnImport.configure(command=lambda: importOrders())
 
-        controller.createSubTitle(self, f"Selectie", 4, 0)
+        controller.createSubTitle(self, "Routes", 4, 0)
+
+        # Tooltip about importing orders
+        self.routeSelectionToolTip = controller.createSubTitle(
+            self, "Importeer eerst de orders voordat je routes kan selecteren", 4, 1
+        )
+        self.routeSelectionToolTip.grid(padx=(0, 0), columnspan=2)
+
         self.stCheckBoxContainer = ScrolledText(self, height=20, state="disabled")
         self.stCheckBoxContainer.grid(
             row=5, column=1, columnspan=2, sticky="nsew", padx=5, pady=3
@@ -75,6 +82,7 @@ class GotaLabelFE(Frame):
                 self.labelInput = fetchOrders(Path(ordersFile.get()), True)
                 self.cleanUp()
                 self.fillCheckBoxes()
+                self.routeSelectionToolTip.configure(text="")
 
             # Error handling
             except PermissionError as permissionError:

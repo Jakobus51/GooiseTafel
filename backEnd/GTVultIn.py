@@ -219,18 +219,9 @@ class GTVultIn:
             "Afleverdatum": deliveryDate,
             "Aantal": selectedQuantity,
         }
-        length1 = len(self.displayOrders)
+        # Reset the index before adding a new entry otherwise the last index may already be in use
         self.displayOrders.reset_index(drop=True, inplace=True)
         self.displayOrders.loc[len(self.displayOrders)] = newRow
-        length2 = len(self.displayOrders)
-        print("")
-
-    def deleteOrder(self, index):
-        length1 = len(self.displayOrders)
-        self.displayOrders.drop([index, index], axis=0, inplace=True)
-        self.displayOrders.reset_index(drop=True)
-        length2 = len(self.displayOrders)
-        print("")
 
     def createCSv(self, displayOrdersFE: DataFrame, exportFolder: Path):
         """Makes the csv which can be imported into Exact
