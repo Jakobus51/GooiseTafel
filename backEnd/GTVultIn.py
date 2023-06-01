@@ -1,9 +1,10 @@
 from backEnd.dataClasses.appEnum import AppEnum
-from pandas import DataFrame, read_excel, to_numeric
+from pandas import DataFrame, Series, read_excel, to_numeric
 from pathlib import Path
 from datetime import datetime, timedelta
 from backEnd.dataClasses.customErrors import MealOverviewError
 from backEnd.gtHelpers import saveAsCsv
+from backEnd.constants import delivery
 
 
 class GTVultIn:
@@ -15,10 +16,12 @@ class GTVultIn:
     mealsAndCodesDict: dict  # Dictionary with keys being the meals written out and values the mealcodes
     displayOrders: DataFrame  # Dataframe containing information that is shown in the order overview in the front end
     KALcustomers: DataFrame  # Customers for which the orders are filled in, retrieved from the KAL aplication
+    weekMenu: DataFrame  # Dataframe containing the weekmenu
 
     def __init__(self):
         self.type = AppEnum.GTVultIn
         self.displayOrders = self.initializeShowOrders()
+        self.weekMenu = self.initializeWeekMenu()
 
     def initializeShowOrders(self) -> DataFrame:
         """Create an empty order dataframe used to display to the user
@@ -37,13 +40,34 @@ class GTVultIn:
         ]
         return DataFrame(columns=displayOrdersColumns)
 
+    def initializeWeekMenu(self) -> DataFrame:
+        """Create an empty week menu dataframe used to display to the user
+
+        Returns:
+            DataFrame: Empty dataframe wherein the display weekmenu will be shown
+        """
+        displayOrdersColumns = [
+            "Wanneer",
+            "Maaltijd",
+            "Aantal",
+        ]
+        return DataFrame(columns=displayOrdersColumns)
+
     def setDisplayOrders(self, displayOrders: DataFrame):
         """Set the display Orders
 
         Args:
-            displayOrders (DataFrame): Datframe containing the display customers
+            displayOrders (DataFrame): Datframe containing the display orders
         """
         self.displayOrders = displayOrders
+
+    def setWeekMenu(self, weekMenu: DataFrame):
+        """Set the week menu
+
+        Args:
+            displayOrders (DataFrame): Datframe containing the week menu
+        """
+        self.weekMenu = weekMenu
 
     def setKALcustomers(self, KALcustomers: DataFrame):
         """Set the KAL customers
@@ -82,15 +106,13 @@ class GTVultIn:
             dict: Dictionary where the key is the orderDay as written down in the excel and the value the corresponding dateTime object.
             When an orderDay is indicated with KOELVERS, the deliveryday is equal to the one before it as it wil be delivered on that day
         """
+
         excelOrderDays = self.getExcelOrderDays()
         year, week = self.getWeekAndYear()
         dateTimeDays = self.getDatesFromWeekNumber(year, week)
 
         dateDict = {}
         for index, orderDay in enumerate(excelOrderDays):
-            if "KOELVERS" in orderDay:
-                dateDict[orderDay] = dateTimeDays[index - 1]
-                continue
             dateDict[orderDay] = dateTimeDays[index]
 
         # Remove the entry from the dictionary if it contains the word "GEEN"
@@ -140,8 +162,8 @@ class GTVultIn:
         """
         # Create a datetime object for the first day of the given week and year
         first_day = datetime.strptime(f"{year}-W{weekNr}-1", "%Y-W%W-%w").date()
-        # Create a list of dates ranging from monday to friday
-        dates = [first_day + timedelta(days=i) for i in range(5)]
+        # Create a list of dates ranging from monday to saturday
+        dates = [first_day + timedelta(days=i) for i in range(6)]
         return dates
 
     def getWeekAndYear(self) -> tuple[int, int]:
@@ -182,11 +204,16 @@ class GTVultIn:
         ]
 
         mealDict = {}
+        # Iterate over the found meals and codes to add them to a dictionary
         for index, mealCode in mealsAndCodesCleaned.iterrows():
-            # The column indeces are still in use so 6 is the code and 7 is the meal name
+            # The column indexes are still in use so 6 is the code and 7 is the meal name
             mealDict[mealCode[7]] = str(mealCode[6])
 
-        if mealDict:
+        # Add Bezorgkosten to the dictionary
+        mealDict["Bezorgkosten"] = delivery.code
+
+        # Bezorgkosten is always added so if mealDict is bigger than 1 it succesfully imported the other meals as well
+        if len(mealDict) > 1:
             return mealDict
         else:
             raise MealOverviewError("De maaltijden en/of de maaltijd codes")
@@ -203,11 +230,13 @@ class GTVultIn:
         # Format the date into the correct format
         deliveryDate = self.orderDaysDict[selectedDateText].strftime("%d/%m/%Y")
 
-        # Add an k to the mealcode when it is KOELVERS otherwise add a w
-        if "KOELVERS" in selectedDateText:
-            mealCode = self.mealsAndCodesDict[selectedMeal] + "k"
+        # If mealcode is the delivery code don't add a w or k to it
+        if self.mealsAndCodesDict[selectedMeal] == delivery.code:
+            mealCode = self.mealsAndCodesDict[selectedMeal]
         else:
-            mealCode = self.mealsAndCodesDict[selectedMeal] + "w"
+            # If KOELVERS is in the selectedDateText add a k to the mealcode, otherwise a w
+            suffix = "k" if "KOELVERS" in selectedDateText else "w"
+            mealCode = self.mealsAndCodesDict[selectedMeal] + suffix
 
         # Create new row and add it to the data frame
         newRow = {
@@ -223,6 +252,23 @@ class GTVultIn:
         self.displayOrders.reset_index(drop=True, inplace=True)
         self.displayOrders.loc[len(self.displayOrders)] = newRow
 
+    def addOrderToWeekMenu(
+        self,
+        selectedMeal: str,
+        selectedDateText: str,
+        selectedQuantity: str,
+    ):
+        """Adds a new order to the weekmenu df which is shown in the front end"""
+        # Create new row and add it to the data frame
+        newRow = {
+            "Wanneer": selectedDateText,
+            "Maaltijd": selectedMeal,
+            "Aantal": selectedQuantity,
+        }
+        # Reset the index before adding a new entry otherwise the last index may already be in use
+        self.weekMenu.reset_index(drop=True, inplace=True)
+        self.weekMenu.loc[len(self.weekMenu)] = newRow
+
     def createCSv(self, displayOrdersFE: DataFrame, exportFolder: Path):
         """Makes the csv which can be imported into Exact
 
@@ -231,13 +277,48 @@ class GTVultIn:
             exportFolder (Path): Location where the csv will be saved
         """
         exportableOrders = DataFrame()
+
         exportableOrders["customerId"] = displayOrdersFE["Klant nr."]
         exportableOrders["orderDate"] = datetime.now().strftime("%d/%m/%Y")
         year, week = self.getWeekAndYear()
-        exportableOrders["orderId"] = f"GTS{year}{week}"
+        exportableOrders["orderId"] = self.getOrderIdColumn(
+            exportableOrders["customerId"], year, week
+        )
         exportableOrders["deliveryDate"] = displayOrdersFE["Afleverdatum"]
         exportableOrders["productId"] = displayOrdersFE["Code"]
         exportableOrders["quantity"] = displayOrdersFE["Aantal"]
 
         csvTitle = f"GTVultIn ({year}-{week})"
         saveAsCsv(exportFolder, exportableOrders, csvTitle)
+
+    def getOrderIdColumn(self, customerIds: Series, year: int, week: int) -> Series:
+        """Uses the customerIDs to create a customer orderID entry for each customer.
+
+        Args:
+            customerIds (Series): IDs of customers which will be used for numbering the
+            year (int): Year of when orders were made
+            week (int): Week of when orders were made
+
+        Returns:
+            Series: The column of orderIds based on the year, week and unique customer ids
+        """
+        # Initialize the dictionary counter
+        customerMap = {}
+
+        # Initialize a counter
+        counter = 1
+
+        # Iterate over the customer IDs
+        for customer in customerIds:
+            if customer not in customerMap:
+                # Assign a new integer if the customer ID is not already in the map
+                customerMap[customer] = counter
+                counter += 1
+
+        # Use the map to make a new column where the customers are numbered by their customerID
+        customerNumbered = customerIds.map(customerMap)
+        # Use customerNumbering to make tht orderID column for the orders
+        orderIdColumn = (
+            "GTS" + str(year) + str(week) + "-" + customerNumbered.astype(str)
+        )
+        return orderIdColumn

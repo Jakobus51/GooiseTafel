@@ -68,6 +68,9 @@ class App(Tk):
         self.printLogo = PhotoImage(file=paths.Print)
         self.newLogo = PhotoImage(file=paths.New)
         self.showLogo = PhotoImage(file=paths.Show)
+        self.addWeekMenuLogo = PhotoImage(file=paths.AddWeekMenu)
+        self.createWeekMenuLogo = PhotoImage(file=paths.CreateWeekMenu)
+        self.addLogo = PhotoImage(file=paths.Add)
 
         # Global settings
         self.configure(padx=5, pady=5)
