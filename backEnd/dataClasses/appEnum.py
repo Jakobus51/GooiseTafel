@@ -9,3 +9,4 @@ class AppEnum(Enum):
     GotaLabel = "GotaLabel"
     SingleLabel = "SingleLabel"
     GTVultIn = "GTVultIn"
+    UALabel = "UALabel"

@@ -117,6 +117,8 @@ def setDirectories():
         sl.GTVultInOutput,
         sl.MealOverviewInput,
         sl.OrderScanOutput,
+        sl.UALabelInput,
+        sl.UALabelOutput,
     ]:
         if not path.exists(location):
             makedirs(location)

@@ -28,6 +28,7 @@ class paths:
     Inkord = path.join(PROJECT_PATH, "Inkord.png")
     GotaLabel = path.join(PROJECT_PATH, "GotaLabel.png")
     SingleLabel = path.join(PROJECT_PATH, "SingleLabel.png")
+    UALabel = path.join(PROJECT_PATH, "UALabel.png")
     PakLijst = path.join(PROJECT_PATH, "PakLijst.png")
     OrderScan = path.join(PROJECT_PATH, "OrderScan.png")
 

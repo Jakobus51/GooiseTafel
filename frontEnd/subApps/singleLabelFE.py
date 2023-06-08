@@ -8,8 +8,8 @@ from tkinter import messagebox
 from pathlib import Path
 from backEnd.dataClasses.labelHelper import LabelHelper
 from backEnd.dataClasses.appEnum import AppEnum
-from backEnd.dataClasses.labelInterface import GTlabel
-from backEnd.labelCreator import createLabels
+from backEnd.dataClasses.mealLabelInterface import MealLabelI
+from backEnd.labelCreator import LabelCreator
 from datetime import date
 
 
@@ -23,9 +23,7 @@ class SingleLabelFE(Frame):
 
         # set variables which get set and will be passed into the function
         ordersFile = StringVar()
-        self.labelInput = LabelHelper(
-            AppEnum.SingleLabel, date.today().strftime("%d-%m-%Y")
-        )
+        self.labelInput: LabelHelper
 
         # set up variable
         self.selectedDeliveryMethod = StringVar("")
@@ -161,7 +159,7 @@ class SingleLabelFE(Frame):
                 # Set the single label and send it to the printer
                 self.labelInput.setLabels(
                     [
-                        GTlabel(
+                        MealLabelI(
                             self.lCustomerName.get(),
                             self.lCustomerId.get(),
                             self.lAddress.get(),
@@ -174,7 +172,7 @@ class SingleLabelFE(Frame):
                         )
                     ]
                 )
-                createLabels(self.labelInput, sl.SingleLabelOutput)
+                LabelCreator(self.labelInput, sl.SingleLabelOutput)
 
             # Error handling
             except PermissionError as permissionError:

@@ -23,6 +23,7 @@ from frontEnd.subApps.inkordFE import InkordFE
 from frontEnd.subApps.liexFE import LiexFE
 from frontEnd.subApps.gotaLabelFE import GotaLabelFE
 from frontEnd.subApps.singleLabelFE import SingleLabelFE
+from frontEnd.subApps.UALabelFE import UALabelFE
 from frontEnd.subApps.pakLijstFE import PakLijstFE
 from frontEnd.subApps.orderScanFE import OrderScanFE
 from frontEnd.subApps.gtVultInFE import GTVultInFE
@@ -102,6 +103,7 @@ class App(Tk):
             LiexFE,
             GotaLabelFE,
             SingleLabelFE,
+            UALabelFE,
             PakLijstFE,
             OrderScanFE,
         ):
@@ -319,6 +321,7 @@ class Menu(Frame):
         self.grid_columnconfigure(5, weight=1)
         self.grid_columnconfigure(6, weight=1)
         self.grid_columnconfigure(7, weight=1)
+        self.grid_columnconfigure(8, weight=1)
 
         self.logoKal = PhotoImage(file=paths.KAL)
         self.logoGTVultIn = PhotoImage(file=paths.GTVultIn)
@@ -326,6 +329,7 @@ class Menu(Frame):
         self.logoInkord = PhotoImage(file=paths.Inkord)
         self.logoGotaLabel = PhotoImage(file=paths.GotaLabel)
         self.logoSingleLabel = PhotoImage(file=paths.SingleLabel)
+        self.logoUALabel = PhotoImage(file=paths.UALabel)
         self.logoPakLijst = PhotoImage(file=paths.PakLijst)
         self.logoOrderScan = PhotoImage(file=paths.OrderScan)
 
@@ -335,8 +339,9 @@ class Menu(Frame):
         controller.createMenuButton(self, self.logoInkord, "Inkord", 3)
         controller.createMenuButton(self, self.logoGotaLabel, "GotaLabel", 4)
         controller.createMenuButton(self, self.logoSingleLabel, "SingleLabel", 5)
-        controller.createMenuButton(self, self.logoPakLijst, "PakLijst", 6)
-        controller.createMenuButton(self, self.logoOrderScan, "OrderScan", 7)
+        controller.createMenuButton(self, self.logoUALabel, "UALabel", 6)
+        controller.createMenuButton(self, self.logoPakLijst, "PakLijst", 7)
+        controller.createMenuButton(self, self.logoOrderScan, "OrderScan", 8)
 
 
 if __name__ == "__main__":

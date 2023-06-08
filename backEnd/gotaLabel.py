@@ -27,7 +27,7 @@ def fetchOrders(filePathOrders: Path, isGotaLabel: bool):
         else LabelHelper(AppEnum.SingleLabel, deliveryDateRange)
     )
 
-    labelsInput.labelDataPerDeliveryMethod = sortOrders(rawOrderData)
+    labelsInput.labelsPerDeliveryRoute = sortOrders(rawOrderData)
     return labelsInput
 
 

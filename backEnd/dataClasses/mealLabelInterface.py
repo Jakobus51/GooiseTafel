@@ -1,4 +1,4 @@
-class GTlabel:
+class MealLabelI:
     customerName: str
     customerId: int
     address: str
