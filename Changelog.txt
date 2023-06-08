@@ -1,3 +1,10 @@
+v1.1:
+	- Added new sub-app: GTVultIn which lets you easily order for GT customers
+	- Already added frame and button for OrderScan sub-app
+	- SingleLabel and GotaLabel have a tooltip to import the orders before you can select anything
+	- Labels in gotaLabel are now sorted on zipcode and address so people with saem zipcode get sorted extra on their address
+	- App now starts in fullscreen mode
+
 v1.03:
 	- Liex now takes delivery cost into account
 	- KAL excel is all in one sheet with color coded customers

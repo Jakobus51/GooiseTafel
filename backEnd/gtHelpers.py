@@ -2,6 +2,7 @@ from pandas import DataFrame
 from re import search
 from backEnd.constants import saveLocations as sl
 from os import path, makedirs
+from pathlib import Path
 
 
 def getDateOfExactFile(data: DataFrame) -> str:
@@ -113,6 +114,9 @@ def setDirectories():
         sl.PakLijstOutput,
         sl.SingleLabelInput,
         sl.SingleLabelOutput,
+        sl.GTVultInOutput,
+        sl.MealOverviewInput,
+        sl.OrderScanOutput,
     ]:
         if not path.exists(location):
             makedirs(location)
@@ -134,3 +138,16 @@ def explodeRows(data: DataFrame) -> DataFrame:
     data["quantity"] = data["duplicates"]
     data = data.drop(columns=["duplicates"])
     return data
+
+
+def saveAsCsv(exportFolder: Path, exportableOrders: DataFrame, title: str) -> None:
+    """Saves the dataframe as a csv which can be imported into Exact
+
+    Args:
+        exportFolder (Path): The place where you want to save your csv
+        exportableOrders (DataFrame): The orders that will be imported into exact
+        title (str): title of the csv
+    """
+    exportFileName = f"{title}.csv"
+    exportPath = exportFolder / exportFileName
+    exportableOrders.to_csv(exportPath, header=False, index=False, sep=";")

@@ -13,7 +13,7 @@ from backEnd.labelCreator import createLabels
 from datetime import date
 
 
-class SingleLabel(Frame):
+class SingleLabelFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
@@ -47,7 +47,13 @@ class SingleLabel(Frame):
         )
         btnImport.configure(command=lambda: importOrders())
 
-        controller.createSubTitle(self, f"Selectie", 4, 0)
+        controller.createSubTitle(self, f"Label", 4, 0)
+
+        # Tooltip about importing orders
+        self.customerSelectionToolTip = controller.createSubTitle(
+            self, "Importeer eerst de orders voordat je labels kan selecteren", 4, 1
+        )
+        self.customerSelectionToolTip.grid(padx=(0, 0), columnspan=2)
 
         # Make some space and add the three dropdowns to select the appropriate meal
         # You cannot set the command of the dropdown after creation so, we have to use all the self nonsens
@@ -93,27 +99,29 @@ class SingleLabel(Frame):
         # all widgets used for the label making
         startRow = 9
         controller.createLabelEntryRow(
-            self, "Klant Naam:", startRow, 0, self.lCustomerName
+            self, "Klant Naam:", startRow, 0, 2, self.lCustomerName
         )
         controller.createLabelEntryRow(
-            self, "Klant ID:", startRow + 1, 0, self.lCustomerId
-        )
-        controller.createLabelEntryRow(self, "Address:", startRow + 2, 0, self.lAddress)
-        controller.createLabelEntryRow(
-            self, "Postcode:", startRow + 3, 0, self.lZipCode
-        )
-        controller.createLabelEntryRow(self, "Plaats:", startRow + 4, 0, self.lCity)
-        controller.createLabelEntryRow(
-            self, "Telefoon:", startRow + 5, 0, self.lPhoneNumber
+            self, "Klant ID:", startRow + 1, 0, 2, self.lCustomerId
         )
         controller.createLabelEntryRow(
-            self, "Aflever Datum:", startRow + 6, 0, self.lDeliveryDate
+            self, "Address:", startRow + 2, 0, 2, self.lAddress
         )
         controller.createLabelEntryRow(
-            self, "Maaltijd:", startRow + 7, 0, self.lProductName
+            self, "Postcode:", startRow + 3, 0, 2, self.lZipCode
+        )
+        controller.createLabelEntryRow(self, "Plaats:", startRow + 4, 0, 2, self.lCity)
+        controller.createLabelEntryRow(
+            self, "Telefoon:", startRow + 5, 0, 2, self.lPhoneNumber
         )
         controller.createLabelEntryRow(
-            self, "Opmerking:", startRow + 8, 0, self.lCustomerRemarks1
+            self, "Aflever Datum:", startRow + 6, 0, 2, self.lDeliveryDate
+        )
+        controller.createLabelEntryRow(
+            self, "Maaltijd:", startRow + 7, 0, 2, self.lProductName
+        )
+        controller.createLabelEntryRow(
+            self, "Opmerking:", startRow + 8, 0, 2, self.lCustomerRemarks1
         )
 
         btnReset = controller.createHelperButton(self, "Reset", startRow + 8, 3)
@@ -137,6 +145,7 @@ class SingleLabel(Frame):
                     "Success",
                     controller.orderSuccessText,
                 )
+                self.customerSelectionToolTip.configure(text="")
 
             # Error handling
             except PermissionError as permissionError:

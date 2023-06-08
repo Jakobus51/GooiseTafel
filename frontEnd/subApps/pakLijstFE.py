@@ -9,7 +9,7 @@ from tkinter import messagebox
 from pathlib import Path
 
 
-class PakLijst(Frame):
+class PakLijstFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller

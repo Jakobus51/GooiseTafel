@@ -9,7 +9,7 @@ from pathlib import Path
 from backEnd.dataClasses.customErrors import UnMatchedOrdersError
 
 
-class Liex(Frame):
+class LiexFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller

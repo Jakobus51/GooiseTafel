@@ -20,3 +20,18 @@ class UnMatchedOrdersError(Exception):
 
         self.message = errorMessage
         super().__init__(self.message)
+
+
+class MealOverviewError(Exception):
+    """Exception raised when parts of the meal overview could not be retrieved
+
+    Attributes:
+        location -- location where the error happened
+        message -- Message which contains the names of the people who could not be matched
+    """
+
+    def __init__(self, location):
+        errorMessage = f"Kan het volgende niet uitlezen uit de maaltijd overzicht excel:\r\n\r\n{location}\r\n\r\nControleer of de ingeladen maaltijd overzicht correct is"
+
+        self.message = errorMessage
+        super().__init__(self.message)

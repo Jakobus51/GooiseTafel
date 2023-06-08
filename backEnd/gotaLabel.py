@@ -66,8 +66,8 @@ def sortOrders(rawOrderData: DataFrame) -> dict:
     # Remove the rows where the product name is "Bezorgkosten" from the dataFrame
     orderData = orderData[orderData["productName"] != "Bezorgkosten"]
 
-    # Sort on zipcode as requested (makes it easier for the delivery guys)
-    orderData = orderData.sort_values("zipCode")
+    # Sort on zipcode as requested, sub-sort on address (makes it easier for the delivery guys)
+    orderData = orderData.sort_values(by=["zipCode", "address"])
 
     # depending on whether the list is asked per route or per category, if per category additional data prep is needed
     return createDictFromColumn(orderData, "deliveryMethod")

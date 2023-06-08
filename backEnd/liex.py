@@ -1,5 +1,5 @@
 from pandas import DataFrame, merge, to_datetime, read_csv, read_excel
-from backEnd.gtHelpers import prepareExactData, prepareLightSpeedData
+from backEnd.gtHelpers import prepareExactData, prepareLightSpeedData, saveAsCsv
 from backEnd.constants import customers, liexCsvExport, delivery
 from pathlib import Path
 from backEnd.dataClasses.customErrors import UnMatchedOrdersError
@@ -20,7 +20,8 @@ def runLiex(filePathWebShop: Path, filePathCustomers: Path, exportFolder: Path) 
     matchedOrders = checkForDeliveryCosts(matchedOrders)
     exportableOrders = prepareCsv(matchedOrders)
     dateRange = getDateRange(exportableOrders)
-    saveAsCsv(exportFolder, exportableOrders, dateRange)
+    csvTitle = f"Liex ({dateRange})"
+    saveAsCsv(exportFolder, exportableOrders, csvTitle)
 
 
 def matchWebShopCustomers(
@@ -148,16 +149,3 @@ def getDateRange(data: DataFrame) -> str:
         + " - "
         + dataLocal["orderDate"].max().strftime("%d-%m-%Y")
     )
-
-
-def saveAsCsv(exportFolder: Path, exportableOrders: DataFrame, dateRange: str) -> None:
-    """Saves the dataframe as a csv which can be imported int Exact
-
-    Args:
-        exportFolder (Path): The place where you want to save your csv
-        exportableOrders (DataFrame): The orders that will be imported into exact
-        dateRange (str): Range for which the online orders were taken, is used in the file name
-    """
-    exportFileName = f"liex ({dateRange}).csv"
-    exportPath = exportFolder / exportFileName
-    exportableOrders.to_csv(exportPath, header=False, index=False, sep=";")
