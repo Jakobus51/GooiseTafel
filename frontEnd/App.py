@@ -23,7 +23,7 @@ from frontEnd.subApps.inkordFE import InkordFE
 from frontEnd.subApps.liexFE import LiexFE
 from frontEnd.subApps.gotaLabelFE import GotaLabelFE
 from frontEnd.subApps.singleLabelFE import SingleLabelFE
-from frontEnd.subApps.UALabelFE import UALabelFE
+from frontEnd.subApps.uaLabelFE import UALabelFE
 from frontEnd.subApps.pakLijstFE import PakLijstFE
 from frontEnd.subApps.orderScanFE import OrderScanFE
 from frontEnd.subApps.gtVultInFE import GTVultInFE

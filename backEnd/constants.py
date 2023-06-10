@@ -36,6 +36,18 @@ class orders:
     ]
 
 
+class uaLabel:
+    columnNames = [
+        "day",
+        "meal",
+        "Leusden",
+        "Hilversum begane grond",
+        "Hilversum 1ste verdieping",
+        "Hilversum 2de verdieping",
+        "Hilversum 3de verdieping",
+    ]
+
+
 class customers:
     """Constant used for creating dataFrames of customer export of Exact."""
 
@@ -91,6 +103,10 @@ class delivery:
     code = "9999b"
     costFloat = 2.95
     costStr = "2,95"
+
+
+class date:
+    year = 2023
 
 
 class saveLocations:

@@ -242,7 +242,7 @@ class LabelCreator:
         self.canvas.drawString(
             self.logoWidth + 2 * self.leftMargin,
             self.labelHeight - self.topMargin - self.textHeight - 2 * self.newTextLine,
-            label.location,
+            label.floor,
         )
 
         self.canvas.setFont("Helvetica", 13.5)
@@ -263,7 +263,7 @@ class LabelCreator:
         # ProductName
         newProductYLocation = self.wrappedText(
             self.canvas,
-            label.product,
+            label.meal,
             afterLogoY - self.newTextLine - 4 * mm,
             self.leftMargin,
             self.maxStringLength,

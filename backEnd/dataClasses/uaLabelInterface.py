@@ -1,20 +1,20 @@
 class UALabelI:
     day: str
     city: str
-    location: str
-    product: str
+    floor: str
+    meal: str
     quantity: str
 
     def __init__(
         self,
         day,
         city,
-        location,
-        product,
+        floor,
+        meal,
         quantity,
     ):
         self.day = day
         self.city = city
-        self.location = location
-        self.product = product
+        self.floor = floor
+        self.meal = meal
         self.quantity = quantity

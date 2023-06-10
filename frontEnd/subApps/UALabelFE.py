@@ -6,7 +6,7 @@ from tkinter import (
 )
 from tkinter.ttk import Checkbutton as TCheckbutton
 from backEnd.constants import saveLocations as sl
-from backEnd.gotaLabel import fetchOrders
+from backEnd.uaLabel import fetchDeliveries
 from tkinter import messagebox
 from pathlib import Path
 from backEnd.dataClasses.labelHelper import LabelHelper
@@ -25,7 +25,7 @@ class UALabelFE(Frame):
 
         # set variables which get set and will be passed into the function
         weekMenuFile = StringVar()
-        self.labelInput = LabelHelper(AppEnum.UALabel, True)
+        self.labelInput: LabelHelper
 
         # set up variable
         self.selectedDeliveryMethod = StringVar("")
@@ -79,7 +79,7 @@ class UALabelFE(Frame):
         def importWeekMenu():
             """Fetches the orders and set the appropriate fields with the given import data"""
             try:
-                self.labelInput = fetchOrders(Path(weekMenuFile.get()), True)
+                self.labelInput = fetchDeliveries(Path(weekMenuFile.get()))
                 self.cleanUp()
                 self.fillCheckBoxes()
                 self.routeSelectionToolTip.configure(text="")
@@ -98,7 +98,7 @@ class UALabelFE(Frame):
             if self.checkIfOneRouteIsChecked():
                 try:
                     self.getRoutesToPrint()
-                    self.labelInput.setLabelsFromRouteDictionaries()
+                    self.labelInput.setLabelsFromDayDictionaries()
                     LabelCreator(self.labelInput, sl.UALabelOutput)
 
                 # Error handling
@@ -120,16 +120,11 @@ class UALabelFE(Frame):
         """Fill the scrollable text box with checkboxes. Each entry in the dictionary gets its own checkbox and BooleanVar"""
         self.stCheckBoxContainer.config(state="normal")
         for key in self.labelInput.labelsPerDeliveryRoute:
-            deliveries = self.labelInput.labelsPerDeliveryRoute[key][
-                "customerId"
-            ].nunique()
-            meals = self.labelInput.labelsPerDeliveryRoute[key]["quantity"].sum()
-
             self.checkedList[key] = BooleanVar(value=False, name=key)
             cb = TCheckbutton(
                 self.stCheckBoxContainer,
                 variable=self.checkedList[key],
-                text=f"{key} (Leveringen: {deliveries}, Maaltijden: {meals})",
+                text=f"{key}",
                 style="Gota.TCheckbutton",
             )
             # Insert the checkbox and start a new line

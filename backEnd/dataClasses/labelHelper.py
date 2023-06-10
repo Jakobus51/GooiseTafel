@@ -122,4 +122,6 @@ class LabelHelper:
     def setLabelsFromDayDictionaries(self):
         labels = []
         for key in self.deliveryRoutesToPrint:
-            self.labels = labels
+            labels.extend(self.deliveryRoutesToPrint[key])
+
+        self.labels = labels
