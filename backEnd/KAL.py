@@ -163,7 +163,7 @@ def createExcel(
     result = concat(frames)
 
     outputFile = path.join(outputFolder, f"{pdfInput.title}.xlsx")
-    with ExcelWriter(outputFile) as writer:
+    with ExcelWriter(outputFile, engine="xlsxwriter") as writer:
         result.to_excel(writer, sheet_name=pdfInput.deliveryDateRange, index=None)
 
         # Makes the width of the columns auto width, so the data shows properly in the excel, stole it from StackOverflow
