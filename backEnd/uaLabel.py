@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from backEnd.constants import date, uaLabel
 from locale import setlocale, LC_TIME
 from backEnd.dataClasses.uaLabelInterface import UALabelI
+from decimal import Decimal, ROUND_HALF_UP
 
 
 def fetchDeliveries(filePathOrders: Path):
@@ -55,8 +56,11 @@ def makeDictionariesPerDay(mealOverview: DataFrame) -> dict:
                     city = splitLocation[0]
                     floor = splitLocation[1] if len(splitLocation) > 1 else ""
 
+                    # Rounds to the nearest integer, always rounds .5 upwards
+                    quantity = Decimal(value).quantize(0, ROUND_HALF_UP)
+
                     # Save everything to label
-                    label = UALabelI(date, city, floor, meal, value)
+                    label = UALabelI(date, city, floor, meal, quantity)
 
                     # Append the label to the dictionary, automatically makes a new one if it does not exist yet
                     dict.setdefault(date, []).append(label)
