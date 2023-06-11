@@ -1,3 +1,7 @@
+v1.2:
+	- Added a new sub-app: UALabel which lets you create labels for large deliveries to refugee centers
+	- Set up a virtual environment for the GTS to better manage packages, it automatically uses that interpreter when started
+
 v1.1:
 	- Added new sub-app: GTVultIn which lets you easily order for GT customers
 	- Already added frame and button for OrderScan sub-app
