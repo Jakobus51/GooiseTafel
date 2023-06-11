@@ -101,8 +101,8 @@ class App(Tk):
             GTVultInFE,
             InkordFE,
             LiexFE,
-            UALabelFE,
             GotaLabelFE,
+            UALabelFE,
             SingleLabelFE,
             PakLijstFE,
             OrderScanFE,
@@ -327,8 +327,8 @@ class Menu(Frame):
         self.logoGTVultIn = PhotoImage(file=paths.GTVultIn)
         self.logoLiex = PhotoImage(file=paths.Liex)
         self.logoInkord = PhotoImage(file=paths.Inkord)
-        self.logoUALabel = PhotoImage(file=paths.UALabel)
         self.logoGotaLabel = PhotoImage(file=paths.GotaLabel)
+        self.logoUALabel = PhotoImage(file=paths.UALabel)
         self.logoSingleLabel = PhotoImage(file=paths.SingleLabel)
         self.logoPakLijst = PhotoImage(file=paths.PakLijst)
         self.logoOrderScan = PhotoImage(file=paths.OrderScan)
@@ -337,8 +337,8 @@ class Menu(Frame):
         controller.createMenuButton(self, self.logoGTVultIn, "GTVultIn", 1)
         controller.createMenuButton(self, self.logoLiex, "Liex", 2)
         controller.createMenuButton(self, self.logoInkord, "Inkord", 3)
-        controller.createMenuButton(self, self.logoUALabel, "UALabel", 4)
-        controller.createMenuButton(self, self.logoGotaLabel, "GotaLabel", 5)
+        controller.createMenuButton(self, self.logoGotaLabel, "GotaLabel", 4)
+        controller.createMenuButton(self, self.logoUALabel, "UALabel", 5)
         controller.createMenuButton(self, self.logoSingleLabel, "SingleLabel", 6)
         controller.createMenuButton(self, self.logoPakLijst, "PakLijst", 7)
         controller.createMenuButton(self, self.logoOrderScan, "OrderScan", 8)
