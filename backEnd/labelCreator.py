@@ -221,7 +221,7 @@ class LabelCreator:
             self.logoHeight,
         )
 
-        self.canvas.setFont("Helvetica-Bold", 11)
+        self.canvas.setFont("Helvetica-Bold", 16)
 
         # Delivery Day
         self.canvas.drawString(
@@ -229,29 +229,38 @@ class LabelCreator:
             self.labelHeight - self.topMargin - self.textHeight,
             label.day,
         )
-        self.canvas.setFont("Helvetica", 11)
+        self.canvas.setFont("Helvetica", 16)
 
         # Delivery city
         self.canvas.drawString(
             self.logoWidth + 2 * self.leftMargin,
-            self.labelHeight - self.topMargin - self.textHeight - self.newTextLine,
+            self.labelHeight
+            - self.topMargin
+            - self.textHeight
+            - self.newTextLine
+            - 2 * mm,
             label.city,
         )
 
         # Delivery location (floor)
         self.canvas.drawString(
             self.logoWidth + 2 * self.leftMargin,
-            self.labelHeight - self.topMargin - self.textHeight - 2 * self.newTextLine,
+            self.labelHeight
+            - self.topMargin
+            - self.textHeight
+            - 2 * self.newTextLine
+            - 4 * mm,
             label.floor,
         )
 
-        self.canvas.setFont("Helvetica", 13.5)
+        self.canvas.setFont("Helvetica", 16)
         afterLogoY = (
             self.labelHeight
             - self.topMargin
             - 2 * self.textHeight
             - 2 * self.newTextLine
         )
+        # line to make stuff more clear
         self.canvas.line(
             self.leftMargin,
             afterLogoY - 4 * mm,
@@ -259,15 +268,14 @@ class LabelCreator:
             afterLogoY - 4 * mm,
         )
 
-        self.canvas.setFont("Helvetica", 13.5)
         # ProductName
         newProductYLocation = self.wrappedText(
             self.canvas,
             label.meal,
-            afterLogoY - self.newTextLine - 4 * mm,
+            afterLogoY - self.newTextLine - 5 * mm,
             self.leftMargin,
-            self.maxStringLength,
-            self.textHeight + 1.2 * mm,
+            self.maxStringLength - 3,
+            self.textHeight + 2.5 * mm,
         )
 
         # product quantity

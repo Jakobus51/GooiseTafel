@@ -25,11 +25,11 @@ def fetchDeliveries(filePathOrders: Path):
 
     labelsInput = LabelHelper(AppEnum.UALabel, f"Week {weekNumber}")
 
-    labelsInput.labelsPerDeliveryRoute = sortMealOverview(rawMealOverview)
+    labelsInput.labelsPerDeliveryRoute = getDictionariesPerDay(rawMealOverview)
     return labelsInput
 
 
-def sortMealOverview(rawMealOverview: DataFrame) -> dict:
+def getDictionariesPerDay(rawMealOverview: DataFrame) -> dict:
     mealoverview = cleanRawData(rawMealOverview)
 
     return makeDictionariesPerDay(mealoverview)
@@ -56,16 +56,21 @@ def makeDictionariesPerDay(mealOverview: DataFrame) -> dict:
                     city = splitLocation[0]
                     floor = splitLocation[1] if len(splitLocation) > 1 else ""
 
+                    # Get the order which is used to sort the labels
+                    order = findOrder(location)
+
                     # Rounds to the nearest integer, always rounds .5 upwards
-                    quantity = Decimal(value).quantize(0, ROUND_HALF_UP)
+                    totalQuantity = Decimal(value).quantize(0, ROUND_HALF_UP)
 
-                    # Save everything to label
-                    label = UALabelI(date, city, floor, meal, quantity)
+                    # Save a label for every eights and the rest value of the total quantity
+                    for quantity in divideByEights(totalQuantity):
+                        # Save everything to label
+                        label = UALabelI(date, city, floor, meal, quantity, order)
 
-                    # Append the label to the dictionary, automatically makes a new one if it does not exist yet
-                    dict.setdefault(date, []).append(label)
+                        # Append the label to the dictionary, automatically makes a new one if it does not exist yet
+                        dict.setdefault(date, []).append(label)
 
-    return dict
+    return sortPerLocation(dict)
 
 
 def cleanRawData(rawMealOverview: DataFrame) -> DataFrame:
@@ -173,6 +178,68 @@ def formatDates(dates: list[datetime]) -> list[str]:
 
 
 def getWholeDate(requestDate: str, formattedDates: list[str]) -> str:
+    """Matches Monday to Monday (12-6-2023)
+
+    Args:
+        requestDate (str): The date of which you want the complete date
+        formattedDates (list[str]): A list  of complete dates
+
+    Returns:
+        str: The complete date
+    """
     for formattedDate in formattedDates:
         if requestDate in formattedDate:
             return formattedDate
+
+
+def divideByEights(number: int) -> list[int]:
+    """Divides a random number by eights and a rest value
+    example: 22 will become [8,8,6]
+
+    Args:
+        number (int): The number you want to divide
+
+    Returns:
+        list[int]: The list of eights + rest value
+    """
+    parts = []
+    while number >= 8:
+        parts.append(8)
+        number -= 8
+    if number > 0:
+        parts.append(number)
+    return parts
+
+
+def findOrder(location: str) -> int:
+    """Link the location to a specific number which will be used to sort the labels
+
+    Args:
+        location (str): The location of which you want to order number
+
+    Returns:
+        int: The order number
+    """
+    if location == "Leusden":
+        return 0
+    elif location == "Hilversum begane grond":
+        return 1
+    elif location == "Hilversum 1ste verdieping":
+        return 2
+    elif location == "Hilversum 2de verdieping":
+        return 3
+    elif location == "Hilversum 3de verdieping":
+        return 4
+
+
+def sortPerLocation(labelsDict: dict) -> dict:
+    """Sort the labels by its order number
+
+    Returns:
+        dict: The sorted dictionary
+    """
+    for key in labelsDict:
+        labelsOfOneDay = labelsDict[key]
+        # Sort label on the order
+        labelsDict[key] = sorted(labelsOfOneDay, key=lambda x: x.order)
+    return labelsDict

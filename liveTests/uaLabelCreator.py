@@ -22,20 +22,8 @@ if __name__ == "__main__":
 
     labelInput.setLabels(
         [
-            UALabelI(
-                lday,
-                lcity,
-                llocation,
-                lprodcut,
-                lquantity,
-            ),
-            UALabelI(
-                lday2,
-                lcity2,
-                llocation2,
-                lprodcut2,
-                lquantity2,
-            ),
+            UALabelI(lday, lcity, llocation, lprodcut, lquantity, 0),
+            UALabelI(lday2, lcity2, llocation2, lprodcut2, lquantity2, 1),
         ]
     )
     LabelCreator(labelInput, sl.UALabelOutput)
