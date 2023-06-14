@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class appVersion:
-    appVersion = "v1.2"
+    appVersion = "v1.2.1"
 
 
 class orders:
