@@ -1,8 +1,8 @@
 from backEnd.dataClasses.appEnum import AppEnum
 from backEnd.dataClasses.labelHelper import LabelHelper
-from backEnd.dataClasses.labelInterface import GTlabel
+from backEnd.dataClasses.mealLabelInterface import MealLabelI
 from backEnd.constants import saveLocations as sl
-from backEnd.labelCreator import createLabels
+from backEnd.labelCreator import LabelCreator
 
 if __name__ == "__main__":
     labelInput = LabelHelper(AppEnum.GotaLabel, "16-04-2023")
@@ -24,7 +24,7 @@ if __name__ == "__main__":
 
     labelInput.setLabels(
         [
-            GTlabel(
+            MealLabelI(
                 lCustomerName,
                 lCustomerId,
                 lAddress,
@@ -35,7 +35,7 @@ if __name__ == "__main__":
                 lProductName,
                 lCustomerRemarks1,
             ),
-            GTlabel(
+            MealLabelI(
                 lCustomerName2,
                 lCustomerId,
                 lAddress2,
@@ -48,6 +48,6 @@ if __name__ == "__main__":
             ),
         ]
     )
-    createLabels(labelInput, sl.GotaLabelOutput)
+    LabelCreator(labelInput, sl.GotaLabelOutput)
 
     print("Finished label creator run")

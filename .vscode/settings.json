@@ -10,10 +10,12 @@
     "liex",
     "nummer",
     "Relaties",
+    "unnescarry",
     "webshop"
   ],
   "[python]": {
     "editor.defaultFormatter": "ms-python.black-formatter"
   },
   "python.formatting.provider": "none",
+  "python.defaultInterpreterPath": "C:\\Users\\Jakob\\Documents\\Malt\\Gooise_Tafel\\venv_GTS\\Scripts\\python.exe"
 }

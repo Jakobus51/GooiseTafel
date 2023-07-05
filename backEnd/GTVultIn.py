@@ -158,7 +158,7 @@ class GTVultIn:
             year (int): Year of dates you want
 
         Returns:
-            list[datetime]: First 5 days of the week; Monday to Friday
+            list[datetime]: First 6 days of the week; Monday to Saturday
         """
         # Create a datetime object for the first day of the given week and year
         first_day = datetime.strptime(f"{year}-W{weekNr}-1", "%Y-W%W-%w").date()

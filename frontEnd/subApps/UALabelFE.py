@@ -6,7 +6,7 @@ from tkinter import (
 )
 from tkinter.ttk import Checkbutton as TCheckbutton
 from backEnd.constants import saveLocations as sl
-from backEnd.gotaLabel import fetchOrders
+from backEnd.uaLabel import fetchDeliveries
 from tkinter import messagebox
 from pathlib import Path
 from backEnd.dataClasses.labelHelper import LabelHelper
@@ -15,7 +15,7 @@ from tkinter.scrolledtext import ScrolledText
 from backEnd.labelCreator import LabelCreator
 
 
-class GotaLabelFE(Frame):
+class UALabelFE(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
@@ -24,7 +24,7 @@ class GotaLabelFE(Frame):
         self.grid_columnconfigure(2, weight=1, uniform="fred")
 
         # set variables which get set and will be passed into the function
-        ordersFile = StringVar()
+        weekMenuFile = StringVar()
         self.labelInput: LabelHelper
 
         # set up variable
@@ -34,25 +34,25 @@ class GotaLabelFE(Frame):
         self.checkedList = {}
 
         # Set title and subtitle
-        controller.createTitle(self, "GotaLabel", 0, 0, 4)
+        controller.createTitle(self, "UALabel", 0, 0, 4)
         controller.createSubTitle(self, f"Input", 1, 0)
 
         # create User input where you ask the orders file
         controller.createAskUserInput(
-            self, "Dag Orders:", 2, 0, ordersFile, sl.GotaLabelInput, True, "xlsx"
+            self, "Week Menu:", 2, 0, weekMenuFile, sl.UALabelInput, True, "xlsx"
         )
 
         # Create button and assign import orders command to it
         btnImport = controller.createRunButton(
-            self, "Importeer Dag Orders", 3, 1, controller.importLogo
+            self, "Importeer Week Menu", 3, 1, controller.importLogo
         )
-        btnImport.configure(command=lambda: importOrders())
+        btnImport.configure(command=lambda: importWeekMenu())
 
-        controller.createSubTitle(self, "Routes", 4, 0)
+        controller.createSubTitle(self, "Dagen", 4, 0)
 
         # Tooltip about importing orders
         self.routeSelectionToolTip = controller.createSubTitle(
-            self, "Importeer eerst de orders voordat je routes kan selecteren", 4, 1
+            self, "Importeer eerst het weekmenu voordat je dagen kan selecteren", 4, 1
         )
         self.routeSelectionToolTip.grid(padx=(0, 0), columnspan=2)
 
@@ -76,10 +76,10 @@ class GotaLabelFE(Frame):
         )
         btnPrint.configure(command=lambda: printLabels())
 
-        def importOrders():
+        def importWeekMenu():
             """Fetches the orders and set the appropriate fields with the given import data"""
             try:
-                self.labelInput = fetchOrders(Path(ordersFile.get()), True)
+                self.labelInput = fetchDeliveries(Path(weekMenuFile.get()))
                 self.cleanUp()
                 self.fillCheckBoxes()
                 self.routeSelectionToolTip.configure(text="")
@@ -98,8 +98,8 @@ class GotaLabelFE(Frame):
             if self.checkIfOneRouteIsChecked():
                 try:
                     self.getRoutesToPrint()
-                    self.labelInput.setLabelsFromRouteDictionaries()
-                    LabelCreator(self.labelInput, sl.GotaLabelOutput)
+                    self.labelInput.setLabelsFromDayDictionaries()
+                    LabelCreator(self.labelInput, sl.UALabelOutput)
 
                 # Error handling
                 except PermissionError as permissionError:
@@ -120,16 +120,11 @@ class GotaLabelFE(Frame):
         """Fill the scrollable text box with checkboxes. Each entry in the dictionary gets its own checkbox and BooleanVar"""
         self.stCheckBoxContainer.config(state="normal")
         for key in self.labelInput.labelsPerDeliveryRoute:
-            deliveries = self.labelInput.labelsPerDeliveryRoute[key][
-                "customerId"
-            ].nunique()
-            meals = self.labelInput.labelsPerDeliveryRoute[key]["quantity"].sum()
-
             self.checkedList[key] = BooleanVar(value=False, name=key)
             cb = TCheckbutton(
                 self.stCheckBoxContainer,
                 variable=self.checkedList[key],
-                text=f"{key} (Leveringen: {deliveries}, Maaltijden: {meals})",
+                text=f"{key}",
                 style="Gota.TCheckbutton",
             )
             # Insert the checkbox and start a new line
@@ -162,6 +157,6 @@ class GotaLabelFE(Frame):
                 return True
         messagebox.showwarning(
             "Error",
-            "Selecteer minstens één route",
+            "Selecteer minstens één dag",
         )
         return False

@@ -88,12 +88,16 @@ def prepareLightSpeedData(rawData: DataFrame) -> DataFrame:
         DataFrame: Cleaned up dataFrame ready for use
     """
 
-    data = rawData.iloc[:, 0].str.split(";", expand=True)
-    # use original column names
-    data.columns = data.iloc[0]
-    data = data[1:]
-    # remove " from all entries
-    data = data.applymap(lambda x: x.replace('"', ""))
+    # data = rawData.iloc[:, 0].str.split(";", expand=True)
+    # # use original column names
+    # data.columns = data.iloc[0]
+    # data = data[1:]
+    # # remove " from all entries
+    # data = rawData.applymap(lambda x: x.replace('"', ""))
+
+    # Quick fix to make it work with old code where reading in LightSpeed data went bit differently
+    data = rawData.fillna("")
+
     return data
 
 
@@ -117,6 +121,8 @@ def setDirectories():
         sl.GTVultInOutput,
         sl.MealOverviewInput,
         sl.OrderScanOutput,
+        sl.UALabelInput,
+        sl.UALabelOutput,
     ]:
         if not path.exists(location):
             makedirs(location)

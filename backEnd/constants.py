@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class appVersion:
-    appVersion = "v1.1"
+    appVersion = "v1.2.2"
 
 
 class orders:
@@ -33,6 +33,18 @@ class orders:
         "quantity",
         "productName",
         "deliveryDate",
+    ]
+
+
+class uaLabel:
+    columnNames = [
+        "day",
+        "meal",
+        "Leusden",
+        "Hilversum begane grond",
+        "Hilversum 1ste verdieping",
+        "Hilversum 2de verdieping",
+        "Hilversum 3de verdieping",
     ]
 
 
@@ -93,8 +105,13 @@ class delivery:
     costStr = "2,95"
 
 
+class date:
+    year = 2023
+
+
 class saveLocations:
-    """All the default directories used when accessing data in the app"""
+    """All the default directories used when accessing data in the app
+    Gets initiated in gtHelpers.setDirectories()"""
 
     default = Path.home() / "Dropbox" / "Gooise Tafel BV" / "GT Software"
     input = default / "Input"
@@ -103,6 +120,7 @@ class saveLocations:
     InkordInput = input / "Inkord"
     GotaLabelInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
     SingleLabelInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
+    UALabelInput = input / "Week Menu (UALabel)"
     PakLijstInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
     MealOverviewInput = input / "Maaltijd Overzichten (GTVultIn)"
     CustomersInput = input / "KlantenBestand"
@@ -113,6 +131,7 @@ class saveLocations:
     InkordOutput = output / "Inkord"
     GotaLabelOutput = output / "GotaLabel"
     SingleLabelOutput = output / "SingleLabel"
+    UALabelOutput = output / "UALabel"
     PakLijstOutput = output / "PakLijst"
     GTVultInOutput = output / "GTVultIn"
     OrderScanOutput = output / "OrderScan"

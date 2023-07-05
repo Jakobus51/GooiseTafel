@@ -3,6 +3,7 @@ from backEnd.gtHelpers import prepareExactData, prepareLightSpeedData, saveAsCsv
 from backEnd.constants import customers, liexCsvExport, delivery
 from pathlib import Path
 from backEnd.dataClasses.customErrors import UnMatchedOrdersError
+from numpy import nan
 
 
 def runLiex(filePathWebShop: Path, filePathCustomers: Path, exportFolder: Path) -> None:
@@ -13,7 +14,7 @@ def runLiex(filePathWebShop: Path, filePathCustomers: Path, exportFolder: Path) 
         filePathCustomers (Path): Location of the customer DB which is an exact export
         exportFolder (Path): Place where you want to save the csv
     """
-    dfWebShopRaw = read_csv(filePathWebShop, sep="delimiter", header=None)
+    dfWebShopRaw = read_csv(filePathWebShop, sep=";", header=0)
     dfCustomersRaw = read_excel(filePathCustomers, header=None)
 
     matchedOrders = matchWebShopCustomers(dfWebShopRaw, dfCustomersRaw)

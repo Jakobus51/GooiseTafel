@@ -7,169 +7,280 @@ from os import path
 from subprocess import Popen
 from media.media import paths
 from textwrap import wrap
+from backEnd.dataClasses.uaLabelInterface import UALabelI
+from backEnd.dataClasses.mealLabelInterface import MealLabelI
 
 
-def createLabels(
-    labelInput: LabelHelper,
-    outputFolder: Path,
-) -> None:
-    if labelInput.type == AppEnum.GotaLabel:
-        fileName = f"GotaLabel ({labelInput.dateOfOrders}).pdf"
-    else:
-        fileName = f"SingleLabel ({labelInput.dateOfOrders}).pdf"
+class LabelCreator:
+    def __init__(self, labelInput: LabelHelper, outputFolder: Path):
+        self.labelInput = labelInput
+        self.outputFile = self.setOutputFile(outputFolder)
+        # global constants used for label making
+        # Label size
+        self.labelWidth = 101 * mm
+        self.labelHeight = 54 * mm
 
-    outputFile = path.join(outputFolder, fileName)
+        # Set margins
+        self.topMargin = 2 * mm
+        self.bottomMargin = 2 * mm
+        self.leftMargin = 2 * mm
+        self.rightMargin = 2 * mm
 
-    # Label size
-    labelWidth = 101 * mm
-    labelHeight = 54 * mm
+        # Logo size
+        self.logoWidth = 27 * mm
+        self.logoHeight = 18 * mm
 
-    # Set margins
-    topMargin = 2 * mm
-    bottomMargin = 2 * mm
-    leftMargin = 2 * mm
-    rightMargin = 2 * mm
+        # Text distance configurations
+        self.textHeight = 3.4 * mm
+        self.interTextDistance = 2 * mm
+        self.newTextLine = self.textHeight + self.interTextDistance
 
-    # Logo size
-    logoWidth = 27 * mm
-    logoHeight = 18 * mm
+        # After how many characters the text wraps, was determined y changing values and checking what kind of impact it had on the labels
+        self.maxStringLengthLogo = 35
+        self.maxStringLength = 38
 
-    # Text distance configurations
-    textHeight = 3.4 * mm
-    interTextDistance = 2 * mm
-    newTextLine = textHeight + interTextDistance
+        self.canvas = canvas.Canvas(
+            self.outputFile,
+            pagesize=(self.labelWidth, self.labelHeight),
+            bottomup=1,
+        )
 
-    # After how many characters the text wraps, was determined y changing values and checking what kind of impact it had on the labels
-    maxStringLengthLogo = 35
-    maxStringLength = 38
+        self.createLabels()
 
-    c = canvas.Canvas(outputFile, pagesize=(labelWidth, labelHeight), bottomup=1)
+    def setOutputFile(self, outputFolder: Path):
+        if self.labelInput.type == AppEnum.GotaLabel:
+            fileName = f"GotaLabel ({self.labelInput.dateOfOrders}).pdf"
+        elif self.labelInput.type == AppEnum.SingleLabel:
+            fileName = f"SingleLabel ({self.labelInput.dateOfOrders}).pdf"
+        elif self.labelInput.type == AppEnum.UALabel:
+            fileName = f"UALabel ({self.labelInput.dateOfOrders}).pdf"
+
+        return path.join(outputFolder, fileName)
 
     def wrappedText(
-        c: canvas, text, originalYCoord, xCoord, maxSLength, textHeight
+        self, canvas: canvas, text, originalYCoord, xCoord, maxSLength, textHeight
     ) -> float:
         """Draws wo string underneath eachother if the text length exceed the maxLength
         Returns the y coordinate of the lowest drawn string
         """
         if len(text) > maxSLength:
             wrappedText = wrap(text, width=maxSLength)
-            c.drawString(xCoord, originalYCoord, wrappedText[0])
-            c.drawString(
+            canvas.drawString(xCoord, originalYCoord, wrappedText[0])
+            canvas.drawString(
                 xCoord,
                 originalYCoord - textHeight,
                 wrappedText[1],
             )
             return originalYCoord - textHeight
         else:
-            c.drawString(
+            canvas.drawString(
                 xCoord,
                 originalYCoord,
                 text,
             )
             return originalYCoord
 
-    # Loop over all labels, each label get drawn on a new page
-    for label in labelInput.labels:
+    def createLabels(self):
+        # Loop over all labels, each label get drawn on a new page
+        for label in self.labelInput.labels:
+            if (
+                self.labelInput.type == AppEnum.GotaLabel
+                or self.labelInput.type == AppEnum.SingleLabel
+            ):
+                self.printMealLabel(label)
+
+            if self.labelInput.type == AppEnum.UALabel:
+                self.printUALabel(label)
+
+            # USe showpage to end the page and thus start a new one
+            self.canvas.showPage()
+
+        # Save the whole pdf (canvas) and open it
+        self.canvas.save()
+        Popen([self.outputFile], shell=True)
+
+    def printMealLabel(self, label: MealLabelI):
         # CustomerID
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(
-            leftMargin + 4.5 * mm,
-            labelHeight - topMargin - textHeight,
+        self.canvas.setFont("Helvetica-Bold", 10)
+        self.canvas.drawString(
+            self.leftMargin + 4.5 * mm,
+            self.labelHeight - self.topMargin - self.textHeight,
             f"{label.customerId}",
         )
-        c.setFont("Helvetica", 10)
+        self.canvas.setFont("Helvetica", 10)
 
-        # Logo and line for better readability
-        c.drawImage(
+        # Logo
+        self.canvas.drawImage(
             paths.logoBorderless,
-            leftMargin,
-            labelHeight - logoHeight - topMargin - newTextLine,
-            logoWidth,
-            logoHeight,
+            self.leftMargin,
+            self.labelHeight - self.logoHeight - self.topMargin - self.newTextLine,
+            self.logoWidth,
+            self.logoHeight,
         )
 
         # Rectangle around logo
-        c.setLineWidth(0.8)
-        c.rect(
-            leftMargin,
-            labelHeight - logoHeight - topMargin - newTextLine,
-            logoWidth,
-            logoHeight,
+        self.canvas.setLineWidth(0.8)
+        self.canvas.rect(
+            self.leftMargin,
+            self.labelHeight - self.logoHeight - self.topMargin - self.newTextLine,
+            self.logoWidth,
+            self.logoHeight,
         )
 
         # customer Name
-        newCustomerNameYLocation = wrappedText(
-            c,
+        newCustomerNameYLocation = self.wrappedText(
+            self.canvas,
             label.customerName,
-            labelHeight - topMargin - textHeight,
-            logoWidth + 2 * leftMargin,
-            maxStringLengthLogo,
-            textHeight,
+            self.labelHeight - self.topMargin - self.textHeight,
+            self.logoWidth + 2 * self.leftMargin,
+            self.maxStringLengthLogo,
+            self.textHeight,
         )
 
         # Address
-        newAddressYLocation = wrappedText(
-            c,
+        newAddressYLocation = self.wrappedText(
+            self.canvas,
             label.address,
-            newCustomerNameYLocation - newTextLine,
-            logoWidth + 2 * leftMargin,
-            maxStringLengthLogo,
-            textHeight,
+            newCustomerNameYLocation - self.newTextLine,
+            self.logoWidth + 2 * self.leftMargin,
+            self.maxStringLengthLogo,
+            self.textHeight,
         )
 
         # Zipcode + city
-        c.drawString(
-            logoWidth + 2 * leftMargin,
-            newAddressYLocation - newTextLine,
+        self.canvas.drawString(
+            self.logoWidth + 2 * self.leftMargin,
+            newAddressYLocation - self.newTextLine,
             label.zipCode + " - " + label.city,
         )
 
         # phone Number
-        c.drawString(
-            logoWidth + 2 * leftMargin,
-            newAddressYLocation - 2 * newTextLine,
+        self.canvas.drawString(
+            self.logoWidth + 2 * self.leftMargin,
+            newAddressYLocation - 2 * self.newTextLine,
             f"Tel: {label.phoneNumber}",
         )
 
         # Customer remarks (address regel 3)
-        newCustomerRemarksYLocation = wrappedText(
-            c,
+        newCustomerRemarksYLocation = self.wrappedText(
+            self.canvas,
             label.customerRemarks1,
-            newAddressYLocation - 3 * newTextLine,
-            logoWidth + 2 * leftMargin,
-            maxStringLengthLogo,
-            textHeight,
+            newAddressYLocation - 3 * self.newTextLine,
+            self.logoWidth + 2 * self.leftMargin,
+            self.maxStringLengthLogo,
+            self.textHeight,
         )
 
-        afterLogoY = labelHeight - logoHeight - 2 * topMargin - textHeight
+        afterLogoY = (
+            self.labelHeight - self.logoHeight - 2 * self.topMargin - self.textHeight
+        )
 
         # Customer Delivery date
-        c.setFont("Helvetica-Bold", 10)
-        c.drawString(
-            leftMargin + 4.5 * mm,
-            afterLogoY - newTextLine,
+        self.canvas.setFont("Helvetica-Bold", 10)
+        self.canvas.drawString(
+            self.leftMargin + 4.5 * mm,
+            afterLogoY - self.newTextLine,
             label.deliveryDate,
         )
-        c.setFont("Helvetica", 10)
+        self.canvas.setFont("Helvetica", 10)
 
-        c.line(
-            leftMargin,
-            afterLogoY - 2 * newTextLine - 4 * mm,
-            labelWidth - rightMargin,
-            afterLogoY - 2 * newTextLine - 4 * mm,
+        self.canvas.line(
+            self.leftMargin,
+            afterLogoY - 2 * self.newTextLine - 4 * mm,
+            self.labelWidth - self.rightMargin,
+            afterLogoY - 2 * self.newTextLine - 4 * mm,
         )
 
-        c.setFont("Helvetica", 13.5)
+        self.canvas.setFont("Helvetica", 13.5)
         # ProductName
-        newProductNameYLocation = wrappedText(
-            c,
+        newProductNameYLocation = self.wrappedText(
+            self.canvas,
             label.productName,
-            afterLogoY - 3 * newTextLine - 4 * mm,
-            leftMargin,
-            maxStringLength,
-            textHeight + 0.8 * mm,
+            afterLogoY - 3 * self.newTextLine - 4 * mm,
+            self.leftMargin,
+            self.maxStringLength,
+            self.textHeight + 0.8 * mm,
         )
 
-        c.showPage()
-    c.save()
-    Popen([outputFile], shell=True)
+    def printUALabel(self, label: UALabelI):
+        # Logo
+        self.canvas.drawImage(
+            paths.logoBorderless,
+            self.leftMargin,
+            self.labelHeight - self.logoHeight - self.topMargin,
+            self.logoWidth,
+            self.logoHeight,
+        )
+
+        # Rectangle around logo
+        self.canvas.setLineWidth(0.8)
+        self.canvas.rect(
+            self.leftMargin,
+            self.labelHeight - self.logoHeight - self.topMargin,
+            self.logoWidth,
+            self.logoHeight,
+        )
+
+        self.canvas.setFont("Helvetica-Bold", 16)
+
+        # Delivery Day
+        self.canvas.drawString(
+            self.logoWidth + 2 * self.leftMargin,
+            self.labelHeight - self.topMargin - self.textHeight,
+            label.day,
+        )
+        self.canvas.setFont("Helvetica", 16)
+
+        # Delivery city
+        self.canvas.drawString(
+            self.logoWidth + 2 * self.leftMargin,
+            self.labelHeight
+            - self.topMargin
+            - self.textHeight
+            - self.newTextLine
+            - 2 * mm,
+            label.city,
+        )
+
+        # Delivery location (floor)
+        self.canvas.drawString(
+            self.logoWidth + 2 * self.leftMargin,
+            self.labelHeight
+            - self.topMargin
+            - self.textHeight
+            - 2 * self.newTextLine
+            - 4 * mm,
+            label.floor,
+        )
+
+        self.canvas.setFont("Helvetica", 16)
+        afterLogoY = (
+            self.labelHeight
+            - self.topMargin
+            - 2 * self.textHeight
+            - 2 * self.newTextLine
+        )
+        # line to make stuff more clear
+        self.canvas.line(
+            self.leftMargin,
+            afterLogoY - 4 * mm,
+            self.labelWidth - self.rightMargin,
+            afterLogoY - 4 * mm,
+        )
+
+        # ProductName
+        newProductYLocation = self.wrappedText(
+            self.canvas,
+            label.meal,
+            afterLogoY - self.newTextLine - 5 * mm,
+            self.leftMargin,
+            self.maxStringLength - 3,
+            self.textHeight + 2.5 * mm,
+        )
+
+        # product quantity
+        self.canvas.drawString(
+            self.leftMargin,
+            newProductYLocation - self.textHeight - self.newTextLine,
+            f"Hoeveelheid: {label.quantity}",
+        )
