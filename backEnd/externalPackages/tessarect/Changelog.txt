@@ -1,0 +1,37 @@
+v1.3 :
+	- Added new sub-app: Orderscan which lets you scan in menu lists
+	- Added chefs choice to GTVultIn
+
+v1.2.2:
+	- Fixed bug in Liex when there was a dot in the comment of a lightSpeed order
+
+v1.2.1:
+	- Formatted the UALabels differently
+
+v1.2:
+	- Added a new sub-app: UALabel which lets you create labels for large deliveries to refugee centers
+	- Set up a virtual environment for the GTS to better manage packages, it automatically uses that interpreter when started
+
+v1.1:
+	- Added new sub-app: GTVultIn which lets you easily order for GT customers
+	- Already added frame and button for OrderScan sub-app
+	- SingleLabel and GotaLabel have a tooltip to import the orders before you can select anything
+	- Labels in gotaLabel are now sorted on zipcode and address so people with saem zipcode get sorted extra on their address
+	- App now starts in fullscreen mode
+
+v1.03:
+	- Liex now takes delivery cost into account
+	- KAL excel is all in one sheet with color coded customers
+	- Customer ID is on top of labels in GotaLabel and SingleLabel
+
+v1.02:
+	- Sort labels per zipcode alphabetically in GotaLabel and SingleLabel
+	- 
+	Sort customer names and product names alphabetically in SingleLabel
+	- When orders are unmatched in Liex trow customer OrdersUnmatchedError which contains the names of who could not be matched
+	- KAL can also be exported as an Excel
+	- Improved error handling. Different error messages for wrong input, empty input or if output already open
+
+v1.01:
+	- Fixed bug where the date was wrong format (yyyy-mm-dd instead of dd-mm-yyyy)
+	- Fixed bug where Liex was saved with a "," as the deliminater instead of a ';'

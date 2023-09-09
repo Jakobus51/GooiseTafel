@@ -2,7 +2,7 @@ from pathlib import Path
 
 
 class appVersion:
-    appVersion = "v1.2.2"
+    appVersion = "v1.3"
 
 
 class orders:
@@ -105,6 +105,10 @@ class delivery:
     costStr = "2,95"
 
 
+class chefChoice:
+    code = "0000"
+
+
 class date:
     year = 2023
 
@@ -124,6 +128,7 @@ class saveLocations:
     PakLijstInput = input / "Dag Orders (GotaLabel, SingleLabel, PakLijst)"
     MealOverviewInput = input / "Maaltijd Overzichten (GTVultIn)"
     CustomersInput = input / "KlantenBestand"
+    OrderScanInput = input / "OrderScan"
 
     output = default / "Output"
     KALOutput = output / "KAL"

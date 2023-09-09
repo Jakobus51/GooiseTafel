@@ -1,5 +1,5 @@
 from tkinter import Frame
-from backEnd.gtVultIn import GTVultIn
+from backEnd.GTVultIn import GTVultIn
 from pandas import DataFrame
 from frontEnd.subApps.gtVultInSubAppsFE.gtVultInWeekMenuFE import WeekMenu
 from frontEnd.subApps.gtVultInSubAppsFE.gtVultInNewOrdersFE import NewOrders

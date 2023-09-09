@@ -3,8 +3,8 @@ from pandas import DataFrame, Series, read_excel, to_numeric
 from pathlib import Path
 from datetime import datetime, timedelta
 from backEnd.dataClasses.customErrors import MealOverviewError
-from backEnd.gtHelpers import saveAsCsv
-from backEnd.constants import delivery
+from backEnd.gtHelpers import get_days_in_week, saveAsCsv
+from backEnd.constants import delivery, chefChoice
 
 
 class GTVultIn:
@@ -109,7 +109,7 @@ class GTVultIn:
 
         excelOrderDays = self.getExcelOrderDays()
         year, week = self.getWeekAndYear()
-        dateTimeDays = self.getDatesFromWeekNumber(year, week)
+        dateTimeDays = get_days_in_week(year, week)
 
         dateDict = {}
         for index, orderDay in enumerate(excelOrderDays):
@@ -149,22 +149,6 @@ class GTVultIn:
             return orderDaysMod
         else:
             raise MealOverviewError("De dagen waarop klanten kunnen bestellen")
-
-    def getDatesFromWeekNumber(self, weekNr: int, year: int) -> list[datetime]:
-        """get the dates from a specefic week given the year and week number
-
-        Args:
-            weekNr (int): Weeknumber of dates you want
-            year (int): Year of dates you want
-
-        Returns:
-            list[datetime]: First 6 days of the week; Monday to Saturday
-        """
-        # Create a datetime object for the first day of the given week and year
-        first_day = datetime.strptime(f"{year}-W{weekNr}-1", "%Y-W%W-%w").date()
-        # Create a list of dates ranging from monday to saturday
-        dates = [first_day + timedelta(days=i) for i in range(6)]
-        return dates
 
     def getWeekAndYear(self) -> tuple[int, int]:
         """Retrieves the weeknumber and year from the mealOverview dataframe
@@ -209,11 +193,12 @@ class GTVultIn:
             # The column indexes are still in use so 6 is the code and 7 is the meal name
             mealDict[mealCode[7]] = str(mealCode[6])
 
-        # Add Bezorgkosten to the dictionary
+        # Add Bezorgkosten and Keuze van de chef to the dictionary, these are always present
         mealDict["Bezorgkosten"] = delivery.code
+        mealDict["Keuze van de Chef"] = chefChoice.code
 
         # Bezorgkosten is always added so if mealDict is bigger than 1 it succesfully imported the other meals as well
-        if len(mealDict) > 1:
+        if len(mealDict) > 2:
             return mealDict
         else:
             raise MealOverviewError("De maaltijden en/of de maaltijd codes")

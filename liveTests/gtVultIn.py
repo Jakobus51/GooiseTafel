@@ -1,4 +1,4 @@
-from backEnd.gtVultIn import GTVultIn
+from backEnd.GTVultIn import GTVultIn
 from backEnd.constants import saveLocations as sl
 
 

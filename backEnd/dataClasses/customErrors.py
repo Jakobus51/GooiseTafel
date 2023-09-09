@@ -35,3 +35,15 @@ class MealOverviewError(Exception):
 
         self.message = errorMessage
         super().__init__(self.message)
+
+
+class OrderScanError(Exception):
+    """Exception raised when parts of the meal overview could not be retrieved
+
+    Attributes:
+        error -- Message which contains the names of the people who could not be matched
+    """
+
+    def __init__(self, error: str):
+        self.message = error
+        super().__init__(self.message)

@@ -17,17 +17,18 @@ from tkinter.filedialog import askopenfilename, askdirectory
 from traceback import format_tb
 from tkinter import messagebox
 from pathlib import Path
-from backEnd.gtHelpers import setDirectories
+from backEnd.gtHelpers import setDirectories, setExternalPackages
 from frontEnd.subApps.KALFE import KALFE
 from frontEnd.subApps.inkordFE import InkordFE
 from frontEnd.subApps.liexFE import LiexFE
 from frontEnd.subApps.gotaLabelFE import GotaLabelFE
 from frontEnd.subApps.singleLabelFE import SingleLabelFE
-from frontEnd.subApps.uaLabelFE import UALabelFE
+from frontEnd.subApps.UALabelFE import UALabelFE
 from frontEnd.subApps.pakLijstFE import PakLijstFE
 from frontEnd.subApps.orderScanFE import OrderScanFE
 from frontEnd.subApps.gtVultInFE import GTVultInFE
 from backEnd.constants import appVersion
+import os
 
 
 class App(Tk):
@@ -176,6 +177,7 @@ class App(Tk):
                 font=self.subNormalFont,
             )
         else:
+            # Otherwise you have to select a directory
             btnAksInput = Button(
                 container,
                 text="Select",
@@ -255,6 +257,8 @@ class App(Tk):
 
         if fileType == "xlsx" or fileType == "xls":
             fileTypesLocal = [("Excel files", ".xlsx .xls")]
+        elif fileType == "pdf":
+            fileTypesLocal = [("PDF Files", "*.pdf")]
         elif fileType == "csv":
             fileTypesLocal = [("CSV Files", "*.csv")]
 
@@ -345,6 +349,8 @@ class Menu(Frame):
 
 
 if __name__ == "__main__":
+    # $python -m frontEnd.App
+    setExternalPackages()
     setDirectories()
     app = App()
     app.mainloop()

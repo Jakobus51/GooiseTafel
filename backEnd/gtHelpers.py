@@ -3,6 +3,9 @@ from re import search
 from backEnd.constants import saveLocations as sl
 from os import path, makedirs
 from pathlib import Path
+from datetime import datetime, timedelta, date
+import sys
+import os
 
 
 def getDateOfExactFile(data: DataFrame) -> str:
@@ -120,9 +123,10 @@ def setDirectories():
         sl.SingleLabelOutput,
         sl.GTVultInOutput,
         sl.MealOverviewInput,
-        sl.OrderScanOutput,
         sl.UALabelInput,
         sl.UALabelOutput,
+        sl.OrderScanInput,
+        sl.OrderScanOutput,
     ]:
         if not path.exists(location):
             makedirs(location)
@@ -154,6 +158,58 @@ def saveAsCsv(exportFolder: Path, exportableOrders: DataFrame, title: str) -> No
         exportableOrders (DataFrame): The orders that will be imported into exact
         title (str): title of the csv
     """
+
     exportFileName = f"{title}.csv"
+    print(exportFolder)
+    print(exportFileName)
     exportPath = exportFolder / exportFileName
+    print(exportPath)
     exportableOrders.to_csv(exportPath, header=False, index=False, sep=";")
+
+
+def get_days_in_week(week_number: int, year: int) -> list[datetime]:
+    """Retrieve the dates given a weeknumber ans year
+
+    Args:
+        week_number (int): The weeknumber
+        year (int): The year
+
+    Returns:
+        list[datetime]: List with first 6 days of the week
+    """
+    # first week of the year is based upon the 4th of Jan
+    january_4 = date(year, 1, 4)
+
+    # Find the Monday of the week that contains January 4th
+    first_monday = january_4 - timedelta(days=january_4.weekday())
+
+    # Calculate the start date of the desired week
+    start_date = first_monday + timedelta(weeks=week_number - 1)
+
+    # Generate dates for the entire week
+    week_dates = [start_date + timedelta(days=i) for i in range(6)]
+    return week_dates
+
+
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = path.abspath(".")
+    return path.join(base_path, relative_path)
+
+
+def setExternalPackages():
+    """Adds external packages to the PATH so they can be used in the application"""
+    PROJECT_PATH = resource_path(Path(__file__).parent)
+
+    os.environ["PATH"] += os.pathsep + os.path.join(
+        PROJECT_PATH, r"externalPackages\poppler-23.08.0\Library\bin"
+    )
+
+    os.environ["PATH"] += os.pathsep + os.path.join(
+        PROJECT_PATH, r"externalPackages\tessarect"
+    )
