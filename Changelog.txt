@@ -1,3 +1,7 @@
+v1.3.1
+	- Changed OrderScan to accommodate the new scanner where the custom orientation is different fot the pdfs
+
+
 v1.3
 	- Added orderScan sub app
 	- Removed bug from liex where it would not recognize the correct week from 2025 onward

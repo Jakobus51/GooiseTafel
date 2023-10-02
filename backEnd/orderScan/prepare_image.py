@@ -28,7 +28,7 @@ def get_image(pil_image: Image, plot: bool):
     open_cv_image = open_cv_image[:, :, ::-1].copy()
 
     # Rotate image in a general way, the rotation get finetuned a bit further down
-    open_cv_image = cv2.rotate(open_cv_image, cv2.ROTATE_90_CLOCKWISE)
+    # open_cv_image = cv2.rotate(open_cv_image, cv2.ROTATE_90_CLOCKWISE)
     img_binary = get_binary_of_image(open_cv_image)
     rotated_img = finetune_rotation(img_binary)
 
